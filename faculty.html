@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM - Faculty Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #000000; 
+            font-family: 'Lexend', sans-serif;
+            color: #ffffff;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 0; border-bottom: 1px solid #333; margin-bottom: 40px; }
+        .prof-pic { width: 60px; height: 60px; background: #ffcc00; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-right: 15px; }
+        .faculty-info h2 { margin-bottom: 0; font-weight: 700; color: #ffcc00; }
+        .faculty-info p { color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+
+        .menu-card {
+            background: #000000;
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: 0.3s;
+            cursor: pointer;
+            height: 100%;
+        }
+        .menu-card:hover { border-color: #ffcc00; transform: translateY(-5px); }
+        .icon-box { font-size: 3rem; margin-bottom: 20px; }
+        .menu-card h3 { font-weight: 700; margin-bottom: 10px; color: #ffcc00; }
+        .menu-card p { color: #aaaaaa; font-size: 0.9rem; }
+        .logout-btn { color: #ffcc00; font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body class="container">
+
+    <div class="header">
+        <div class="d-flex align-items-center">
+            <div class="prof-pic" id="initials">?</div>
+            <div class="faculty-info">
+                <h2 id="facName">Loading...</h2>
+                <p id="facRole">Faculty Portal</p>
+            </div>
+        </div>
+        <a href="#" class="logout-btn" onclick="logout()">LOGOUT</a>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-md-6">
+            <div class="menu-card" onclick="logTime('Logged In')">
+                <img src="/IAM_logo.png" class="rock-logo" alt="Logo" height="100" width="100">
+                <h3>In</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="menu-card" onclick="logTime('Logged Out')">
+                <img src="/IAM_logo.png" class="rock-logo" alt="Logo" height="100" width="100">
+                <h3>Out</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
+    
+    const rawData = localStorage.getItem('facultyUser');
+    const userData = rawData ? JSON.parse(rawData) : null;
+
+    // Check if user is logged in AND has an email stored
+    if (!userData || !userData.email) {
+        localStorage.removeItem('facultyUser'); // Clear broken data
+        window.location.href = 'index.html';
+    } else {
+        document.getElementById('facName').innerText = userData.name;
+        document.getElementById('facRole').innerText = (userData.role || "Faculty") + " Instructor";
+        document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
+    }
+
+    async function logTime(type) {
+    // Construct the package with the Faculty ID included
+            try {
+            // 1. Get the current Public IP so we can verify the Wi-Fi network
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            const currentIP = ipData.ip; // This defines the missing variable
+
+            // 2. Prepare the data to send to your Google Sheet
+            const payload = {
+                action: 'logAttendance',
+                facultyId: userData.facultyId, // Stores the IAM ID
+                name: userData.name,
+                email: userData.email,
+                role: userData.role,
+                type: type,
+                clientIP: currentIP // Sends the IP for the security check
+            };
+
+            // 3. Send the request to Google Apps Script
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            });
+            
+            alert(`✅ SUCCESS: ${type}`);
+        } catch (e) { 
+            console.error(e);
+            alert("Connection Error. Please check your internet."); 
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('facultyUser');
+        window.location.href = 'index.html';
+    }
+</script>
+</body>
+</html>
