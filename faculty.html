@@ -79,35 +79,37 @@
     }
 
     async function logTime(type) {
-    // Construct the package with the Faculty ID included
-            try {
-            // 1. Get the current Public IP so we can verify the Wi-Fi network
+        try {
             const ipResponse = await fetch('https://api.ipify.org?format=json');
             const ipData = await ipResponse.json();
-            const currentIP = ipData.ip; // This defines the missing variable
+            const currentIP = ipData.ip;
 
-            // 2. Prepare the data to send to your Google Sheet
             const payload = {
                 action: 'logAttendance',
-                facultyId: userData.facultyId, // Stores the IAM ID
+                facultyId: userData.facultyId,
                 name: userData.name,
                 email: userData.email,
                 role: userData.role,
                 type: type,
-                clientIP: currentIP // Sends the IP for the security check
+                clientIP: currentIP 
             };
 
-            // 3. Send the request to Google Apps Script
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload) // Remove mode: 'no-cors' to see errors
             });
             
-            alert(`✅ SUCCESS: ${type}`);
+            const result = await response.text();
+            
+            if (result === "SUCCESS") {
+                alert(`✅ Recorded: ${type}`);
+            } else if (result === "ACCESS_DENIED") {
+                alert("❌ Access Denied: Please connect to Academy Wi-Fi.");
+            } else {
+                alert("⚠️ Server Error: Data not saved.");
+            }
         } catch (e) { 
-            console.error(e);
-            alert("Connection Error. Please check your internet."); 
+            alert("Connection failed. Check your internet."); 
         }
     }
 
