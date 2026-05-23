@@ -157,16 +157,6 @@
         if (!userData) {
             window.location.href = 'index.html';
         } else {
-            // 🔍 TEMPORARY DEBUGGER ALERT
-            alert("Current Session Data:\n" + JSON.stringify(userData, null, 2));
-
-            document.getElementById('facName').innerText = userData.name;
-            document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
-        }
-
-        if (!userData) {
-            window.location.href = 'index.html';
-        } else {
             document.getElementById('facName').innerText = userData.name;
             document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
             
