@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM - Gateway Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000000; font-family: 'Lexend', sans-serif; color: #ffffff; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 0; border-bottom: 1px solid #333; margin-bottom: 40px; }
+        .prof-pic { width: 60px; height: 60px; background: #ffcc00; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-right: 15px; }
+        .faculty-info h2 { margin-bottom: 0; font-weight: 700; color: #ffcc00; }
+        .faculty-info p { color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 0; }
+        
+        .menu-card {
+            background: #000000; border-radius: 24px; padding: 40px; text-align: center; border: 1px solid #333; transition: 0.3s; cursor: pointer; height: 100%;
+        }
+        .menu-card:hover { border-color: #ffcc00; transform: translateY(-5px); }
+        .icon-box { font-size: 3rem; margin-bottom: 20px; }
+        .menu-card h3 { font-weight: 700; margin-bottom: 0; color: #ffcc00; }
+        .logout-btn { color: #ffcc00; font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body class="container">
+
+    <div class="header">
+        <div class="d-flex align-items-center">
+            <div class="prof-pic" id="initials">?</div>
+            <div class="faculty-info">
+                <h2 id="facName">Loading...</h2>
+                <p id="facRole">Verifying Credentials...</p>
+            </div>
+        </div>
+        <a href="#" class="logout-btn" onclick="logout()">LOGOUT</a>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-md-6">
+            <div class="menu-card" onclick="window.location.href='admin.html'">
+                <div class="icon-box">📊</div>
+                <h3>View as Admin</h3>
+                <p class="text-muted mt-3 mb-0">Open the Leave Management Control interface window panel.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="menu-card" onclick="window.location.href='faculty.html'">
+                <div class="icon-box">🎸</div>
+                <h3>View as Faculty</h3>
+                <p class="text-muted mt-3 mb-0">Open standard attendance punch functions and leave applications.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userData = JSON.parse(localStorage.getItem('facultyUser'));
+        if (!userData || userData.role !== 'Admin') {
+            localStorage.removeItem('facultyUser');
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('facName').innerText = userData.name;
+            // Combined string formatting layout target update
+            document.getElementById('facRole').innerText = `${userData.role} (${userData.dept} Department)`;
+            document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
+        }
+        function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
