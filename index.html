@@ -33,21 +33,20 @@
             margin: 0 auto;
         }
         
-        /* Updated specifically for your request */
         .yellow-text { color: #ffcc00 !important; }
         
         .form-label { font-weight: 700; font-size: 0.8rem; color: #ffcc00; text-transform: uppercase; margin-bottom: 8px; }
         
         .form-control, .form-select {
             background: #ffcc00;
-            border: 2px solid #000000; /* Black Outline */
+            border: 2px solid #000000; 
             border-radius: 12px;
             padding: 12px 15px;
-            color: #000;
+            color: #000000;
             margin-bottom: 20px;
         }
-        .form-control:focus { background: #ffcc00; border-color: #ffffff; color: #000000; box-shadow: none; }
-        .form-control::placeholder { color: #000000; }
+        .form-control:focus, .form-select:focus { background: #ffcc00; border-color: #ffffff; color: #000000; box-shadow: none; }
+        .form-control::placeholder { color: #544c4c; }
 
         .btn-yellow {
             background: #000;
@@ -74,13 +73,12 @@
         <p class="brand-sub">Rock Academy Portal</p>
     </div>
 
-    <!-- LOGIN CARD -->
     <div id="loginSection" class="card">
         <h2 class="fw-bold mb-1 yellow-text">Faculty Login</h2>
         <p class="mb-4 yellow-text">Enter credentials to proceed</p>
         
         <label class="form-label">Faculty ID</label>
-        <input type="text" id="loginId" class="form-control" placeholder="IAM00">
+        <input type="text" id="loginId" class="form-control" placeholder="eg. IAM00">
         
         <label class="form-label">Password</label>
         <input type="password" id="loginPass" class="form-control" placeholder="••••••••">
@@ -89,24 +87,23 @@
         <p class="text-center small yellow-text">New here? <a href="#" onclick="toggleForm('regSection')" class="yellow-link">Register Account</a></p>
     </div>
 
-    <!-- REGISTRATION CARD -->
     <div id="regSection" class="card hidden">
         <h2 class="fw-bold mb-1 yellow-text">Join the Crew</h2>
         <p class="mb-4 yellow-text">Register your faculty account</p>
         
         <label class="form-label">Full Name</label>
-        <input type="text" id="regName" class="form-control">
+        <input type="text" id="regName" class="form-control" placeholder="Firstname Middlename Lastname">
         
         <label class="form-label">Email ID</label>
-        <input type="email" id="regEmail" class="form-control" placeholder="@gmail.com or @yahoo.com">
+        <input type="email" id="regEmail" class="form-control" placeholder="abc@gmail.com or @xyzyahoo.com">
         
         <label class="form-label">Password</label>
         <input type="password" id="regPass" class="form-control" placeholder="••••••••">
-        
+
         <div class="row">
             <div class="col-6">
                 <label class="form-label">Department</label>
-                <select id="regRole" class="form-select">
+                <select id="regDept" class="form-select">
                     <option value="Guitar">Guitar</option>
                     <option value="Drums">Drums</option>
                     <option value="Western Vocals">Western Vocals</option>
@@ -147,16 +144,26 @@
                     method: 'POST',
                     body: JSON.stringify({ 
                         action: 'login', 
-                        facultyId: facultyId, // Sending ID instead of Email
+                        facultyId: facultyId,
                         password: pass 
                     })
                 });
                 const rawResponse = await response.text();
                 
                 if (rawResponse !== "Fail") {
-                    // result now contains name, role, AND email from the sheet
-                    localStorage.setItem('facultyUser', rawResponse);
-                    window.location.href = 'faculty.html';
+                    // 1. Parse the server response string into a clean operational object
+                    const parsedUser = JSON.parse(rawResponse);
+                    
+                    // 2. 🔒 FORCE COMPACT TEXT STORAGE: Stringify the parsed object explicitly
+                    // This ensures all pages (like faculty.html) can read fresh backend columns without crashing!
+                    localStorage.setItem('facultyUser', JSON.stringify(parsedUser));
+                    
+                    // 3. Smart Routing Check: Route based on Admin status
+                    if (parsedUser.role === 'Admin' || parsedUser.name === "Gutti Anshuman") {
+                        window.location.href = 'bridge.html'; // Admins go to the selector gateway
+                    } else {
+                        window.location.href = 'faculty.html'; // Regular faculty go right to clocking
+                    }
                 } else {
                     alert("Invalid Faculty ID or Password");
                 }
@@ -171,14 +178,14 @@
             const btn = document.getElementById('regBtn');
             const data = {
                 action: 'register',
-                name: document.getElementById('regName').value,
-                email: document.getElementById('regEmail').value,
+                name: document.getElementById('regName').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
                 password: document.getElementById('regPass').value,
-                role: document.getElementById('regRole').value,
+                role: document.getElementById('regDept').value, // This saves their Department (e.g., "Guitar") into Column E
                 dob: document.getElementById('regDob').value
             };
 
-            if(!data.name || !data.email || !data.password) return alert("Please fill all fields");
+            if(!data.name || !data.email || !data.password || !data.dob) return alert("Please fill all fields");
 
             btn.disabled = true;
             btn.innerText = "REGISTERING...";
@@ -189,7 +196,6 @@
                     body: JSON.stringify(data) 
                 });
                 
-                // We parse the response to get the generated ID
                 const result = await response.json();
                 
                 if (result.facultyId) {
@@ -203,6 +209,7 @@
                 btn.innerText = "Register Faculty";
             }
         }
+        
     </script>
 </body>
 </html>
