@@ -275,12 +275,18 @@
             const typeVal = document.getElementById('leaveType').value;
             if(!dateVal) return alert("Please pick a date first.");
 
+            // 🔒 LEAVE POOL EXHAUSTION GUARD
+            // Read the current live text balance from your dashboard's status card
+            const currentPendingBalance = Number(document.getElementById('statPending').innerText) || 0;
+
+            if (currentPendingBalance <= 0) {
+                return alert("❌ Access Denied: Your Pending Leaves balance is 0! You cannot submit any more leave requests until your balance rolls over or resets.");
+            }
+
             // 🔒 GLOBAL SUBMISSION BOUNDARY COMPLIANCE CHECK
             if (userData.regDate) {
                 try {
                     let regDateCleanText = userData.regDate.toString().trim();
-                    
-                    // Direct text comparison prevents browser time zone shifts entirely
                     if (dateVal < regDateCleanText) {
                         return alert(`❌ Access Denied: You cannot request leave before your official registration date (${formatDateString(regDateCleanText)})!`);
                     }
@@ -289,6 +295,7 @@
                 }
             }
             
+            // --- Rest of your public holidays, Sunday checks, and Fetch payload remain exactly the same ---
             const publicHolidays = [
                 "2026-01-01", "2026-01-14", "2026-01-26", "2026-03-03", 
                 "2026-03-19", "2026-05-01", "2026-08-15", "2026-09-14", 
