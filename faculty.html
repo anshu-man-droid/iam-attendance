@@ -163,9 +163,15 @@
             document.getElementById('statPending').innerText = userData.leaveBalance !== undefined ? userData.leaveBalance : "4";
             document.getElementById('statUsed').innerText = userData.usedLeaves !== undefined ? userData.usedLeaves : "0";
             document.getElementById('statTotal').innerText = userData.totalLeaves !== undefined ? userData.totalLeaves : "4";
-            if (userData.name.trim() === "Gutti Anshuman" && userData.dept === "Guitar") {
-                document.getElementById('facRole').innerText = "Guitar Instructor";
+            
+            // 🧭 SMART ROLE-BASED HUB ROUTING DETECTORS
+            if (userData.name.trim() === "Ken Seng Thoumoung") {
+                // Ken gets his proper instrument title + Admin clearance token
+                document.getElementById('facRole').innerText = "Guitar Instructor (Admin)";
                 document.getElementById('backToGatewayBtn').classList.remove('hidden');
+            } else if (userData.name.trim() === "Gutti Anshuman") {
+                // Anshuman is now strictly a Guitar Instructor
+                document.getElementById('facRole').innerText = "Guitar Instructor";
             } else if (userData.role === 'Admin') {
                 document.getElementById('facRole').innerText = `Admin (${userData.dept} View Mode)`;
                 document.getElementById('backToGatewayBtn').classList.remove('hidden');
@@ -176,12 +182,9 @@
             // 🔒 BULLETPROOF CALENDAR BLOCKER
             if (userData.regDate) {
                 try {
-                    // Convert any incoming format safely using a temporary local date instance
-                    // Replacing hyphens with slashes or parsing text cleanly avoids timezone drops
                     let rawDateStr = userData.regDate.toString().split('T')[0].split(' ')[0];
                     let d = new Date(rawDateStr.replace(/-/g, '/'));
                     
-                    // Fallback check if it's formatted like MM/DD/YYYY or DD-MM-YYYY in your sheet
                     if (isNaN(d.getTime())) {
                         d = new Date(userData.regDate);
                     }
@@ -191,14 +194,10 @@
                         const month = String(d.getMonth() + 1).padStart(2, '0');
                         const day = String(d.getDate()).padStart(2, '0');
                         
-                        // Construct the absolute standard text needed for HTML5 calendar restrictions
                         const htmlMinFormat = `${year}-${month}-${day}`;
-                        
                         const calendarInput = document.getElementById('leaveCalendar');
-                        calendarInput.min = htmlMinFormat; // Dynamically forces the restriction attribute
-                        calendarInput.value = "";          // Clear out any stale cached values
-                        
-                        console.log("Calendar min-boundary successfully locked to:", htmlMinFormat);
+                        calendarInput.min = htmlMinFormat;
+                        calendarInput.value = "";
                     }
                 } catch(err) {
                     console.error("Boundary enforcement error:", err);
@@ -210,43 +209,26 @@
         }
 
         async function fetchUpdatedLeaveNumbers() {
-            // Re-fetch to get most up-to-date live tracking balances directly from the spreadsheet columns
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         action: 'login',
                         facultyId: userData.facultyId,
-                        password: userData.password || "1234" // Quick structural fallback link
+                        password: userData.password
                     })
                 });
                 const freshData = await response.json();
                 if(freshData !== "Fail") {
-                    // Update layout metrics using the column structure
-                    // The backend recalculates Used, Pending, and Total based on your custom model!
-                    document.getElementById('statPending').innerText = freshData.leaveBalance; // Pending (Live balance remaining)
-                    
-                    // Since your backend parses totals, we can mathematically display the whole layout context cleanly
-                    // If you want to pull absolute row columns live, they track dynamically
-                    // Let's deduce them seamlessly or display via your local profile payload indicators
-                    // To show them explicitly, we read the balance structures
+                    document.getElementById('statPending').innerText = freshData.leaveBalance;
+                    document.getElementById('statUsed').innerText = freshData.usedLeaves !== undefined ? freshData.usedLeaves : "0";
+                    document.getElementById('statTotal').innerText = freshData.totalLeaves !== undefined ? freshData.totalLeaves : "4";
                 }
             } catch(e) { 
-                // Local Storage structural fallback visualization display tags
                 document.getElementById('statPending').innerText = userData.leaveBalance || "4";
+                document.getElementById('statUsed').innerText = userData.usedLeaves || "0";
+                document.getElementById('statTotal').innerText = userData.totalLeaves || "4";
             }
-            
-            // Optional direct manual display values hook:
-            // Since we know Pending is your remaining active pool, we map it elegantly:
-            // Let's set initial view states dynamically from our local storage object session parameters
-            // We will request the script to add a small feature to pass all 3 parameters in a future refactor if needed,
-            // but currently, it updates your live Pending pool instantly!
-            document.getElementById('statPending').innerText = userData.leaveBalance !== undefined ? userData.leaveBalance : "4";
-            
-            // To display raw values clearly, we pull them dynamically
-            // For now, let's look at your session metrics:
-            document.getElementById('statTotal').innerText = "4"; // Baseline
-            document.getElementById('statUsed').innerText = (4 - Number(userData.leaveBalance || 4));
         }
 
         async function fetchUserLeaveHistory() {
@@ -262,7 +244,6 @@
                 if(list.length === 0) {
                     container.innerHTML = `<tr><td colspan="3" class="text-muted text-center">No leave entries found.</td></tr>`;
                 } else {
-                    // Render history rows onto the screen safely
                     list.reverse().forEach(item => {
                         let badgeClass = "badge-pending";
                         if(item.status === 'Approved') badgeClass = "badge-approved";
@@ -278,78 +259,56 @@
                     });
                 }
 
-                // ⚡ BULLETPROOF BALANCE RENDERING:
-                // Instead of calculating balances on the client, fetch fresh database row allocations
                 if (userData) {
-                    // Request fresh profile details to capture live sheet values
                     const updateResp = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ action: 'login', facultyId: userData.facultyId, password: userData.password || "1234" })
+                        body: JSON.stringify({ action: 'login', facultyId: userData.facultyId, password: userData.password })
                     });
                     const freshData = await updateResp.json();
                     
                     if (freshData !== "Fail") {
-                        // Update local memory with the fresh backend calculation stats
                         userData.leaveBalance = freshData.leaveBalance;
                         userData.usedLeaves = freshData.usedLeaves;
                         userData.totalLeaves = freshData.totalLeaves;
                         localStorage.setItem('facultyUser', JSON.stringify(userData));
 
-                        // 🇮🇳 Display exactly what your spreadsheet rows hold!
-                        document.getElementById('statTotal').innerText = freshData.totalLeaves;     // Shows 12
-                        document.getElementById('statUsed').innerText = freshData.usedLeaves;       // Shows 2
-                        document.getElementById('statPending').innerText = freshData.leaveBalance;   // Shows 10 
+                        document.getElementById('statTotal').innerText = freshData.totalLeaves;
+                        document.getElementById('statUsed').innerText = freshData.usedLeaves;
+                        document.getElementById('statPending').innerText = freshData.leaveBalance;
                     }
                 }
             } catch(e) { console.log("History balance synchronization failed:", e); }
         }
 
         async function submitLeaveRequest() {
-            const dateVal = document.getElementById('leaveCalendar').value; // Formatted as "YYYY-MM-DD"
+            const dateVal = document.getElementById('leaveCalendar').value;
             const typeVal = document.getElementById('leaveType').value;
             if(!dateVal) return alert("Please pick a date first.");
 
-            // 🛑 REGISTRATION DATE BOUNDARY VALIDATION
             if (userData.regDate) {
-                const regDateCleanText = userData.regDate.toString().split('T')[0].split(' ')[0]; // Absolute text "YYYY-MM-DD"
-                
-                // When strings are in YYYY-MM-DD format, text comparisons like "<" work perfectly and ignore timezones!
+                const regDateCleanText = userData.regDate.toString().split('T')[0].split(' ')[0];
                 if (dateVal < regDateCleanText) {
                     return alert(`❌ Access Denied: You cannot request leave before your official registration date (${formatDateString(regDateCleanText)})!`);
                 }
             }
             
-            // 1. MASTER LIST OF PUBLIC HOLIDAYS (Format: YYYY-MM-DD)
             const publicHolidays = [
-                "2026-01-01", // New Year's Day
-                "2026-01-14", // Makar Sankranti / Pongal
-                "2026-01-26", // Republic Day
-                "2026-03-03", // Holi
-                "2026-03-19", // Ugadi / Gudi Padwa
-                "2026-05-01", // May Day / Labour Day
-                "2026-08-15", // Independence Day
-                "2026-09-14", // Janmashtami
-                "2026-10-02", // Gandhi Jayanti
-                "2026-10-20", // Dussehra
-                "2026-11-08", // Diwali
-                "2026-12-25"  // Christmas Day
+                "2026-01-01", "2026-01-14", "2026-01-26", "2026-03-03", 
+                "2026-03-19", "2026-05-01", "2026-08-15", "2026-09-14", 
+                "2026-10-02", "2026-10-20", "2026-11-08", "2026-12-25"
             ];
 
-            // 2. HOLIDAY CHECKER
             if (publicHolidays.includes(dateVal)) {
                 return alert("❌ Leave requests cannot be submitted for Public Holidays! The academy is already closed.");
             }
 
-            // 3. SUNDAY CHECKER
-            // Replacing hyphens with forward slashes keeps browser date engine parses localized and precise
             const targetDate = new Date(dateVal.replace(/-/g, '/')); 
-            const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday...
+            const dayOfWeek = targetDate.getDay();
             
             if (dayOfWeek === 0) {
                 return alert("❌ Leave requests cannot be submitted for Sundays! Please select a weekday.");
             }
             
-            // 4. DATABASE TRANSMISSION IF VALIDATION PASSES
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -393,7 +352,6 @@
         }
 
         function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }
-        
     </script>
 </body>
 </html>
