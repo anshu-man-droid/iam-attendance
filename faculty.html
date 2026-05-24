@@ -164,19 +164,17 @@
             document.getElementById('statUsed').innerText = userData.usedLeaves !== undefined ? userData.usedLeaves : "0";
             document.getElementById('statTotal').innerText = userData.totalLeaves !== undefined ? userData.totalLeaves : "4";
             
-            // 🧭 SMART ROLE-BASED HUB ROUTING DETECTORS
-            if (userData.name.trim() === "Ken Seng Thoumoung") {
-                // Ken gets his proper instrument title + Admin clearance token
-                document.getElementById('facRole').innerText = "Guitar Instructor (Admin)";
+            // 🧭 AUTOMATIC NAME + ROLE MATCHING SYSTEM (STEALTH MODE)
+            // Sets their dynamic layout title directly from their spreadsheet department column
+            document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
+
+            if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Guitar") {
+                // Perfect, verified verification match: Grant Ken Seng his Admin navigation switch links
                 document.getElementById('backToGatewayBtn').classList.remove('hidden');
-            } else if (userData.name.trim() === "Gutti Anshuman") {
-                // Anshuman is now strictly a Guitar Instructor
-                document.getElementById('facRole').innerText = "Guitar Instructor";
-            } else if (userData.role === 'Admin') {
-                document.getElementById('facRole').innerText = `Admin (${userData.dept} View Mode)`;
-                document.getElementById('backToGatewayBtn').classList.remove('hidden');
+                console.log("Stealth Admin console initialized for:", userData.name);
             } else {
-                document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
+                // Regular view parameters for everyone else, explicitly locking down visibility options
+                document.getElementById('backToGatewayBtn').classList.add('hidden');
             }
 
             // 🔒 BULLETPROOF CALENDAR BLOCKER
