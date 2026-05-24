@@ -15,7 +15,6 @@
         
         .dashboard-section { background: #111111; border: 1px solid #222; border-radius: 24px; padding: 30px; margin-bottom: 30px; }
         
-        /* Navigation Tabs Control Layout Styling */
         .nav-tabs { border-bottom: 2px solid #222; margin-bottom: 25px; }
         .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; }
         .nav-link:hover { color: #ffcc00; }
@@ -32,6 +31,13 @@
 
         .badge-approved { background: #198754; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #fff; }
         .badge-rejected { background: #dc3545; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #fff; }
+
+        /* Directory Table Styling */
+        .directory-table { width: 100%; color: #fff; border-collapse: collapse; }
+        .directory-table th { color: #ffcc00; border-bottom: 2px solid #222; padding: 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .directory-table td { padding: 14px 12px; border-bottom: 1px solid #222; font-size: 0.95rem; vertical-align: middle; }
+        .directory-table tr:hover { background: #161616; }
+        .text-pending-count { color: #ffcc00; font-weight: bold; }
     </style>
 </head>
 <body class="container">
@@ -57,6 +63,9 @@
         <li class="nav-item">
             <a class="nav-link" id="tabHistory" href="#" onclick="switchView('History')">Processed History</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tabDirectory" href="#" onclick="switchView('Directory')">Faculty Directory</a>
+        </li>
     </ul>
 
     <div id="sectionRequests" class="dashboard-section">
@@ -69,75 +78,80 @@
         <div id="adminHistoryContainer">Loading history...</div>
     </div>
 
+    <div id="sectionDirectory" class="dashboard-section hidden">
+        <h4 style="color: #ffcc00; font-weight: 700; margin-bottom: 20px;">Faculty Leave Balance Records</h4>
+        <div class="table-responsive">
+            <table class="directory-table">
+                <thead>
+                    <tr>
+                        <th>Faculty ID</th>
+                        <th>Instructor Name</th>
+                        <th>Department/Role</th>
+                        <th class="text-center">Total Leaves</th>
+                        <th class="text-center">Used Leaves</th>
+                        <th class="text-center">Pending Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="directoryTableBody">
+                    <tr><td colspan="6" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
         const userData = JSON.parse(localStorage.getItem('facultyUser'));
 
         function formatDateString(rawDate) {
             if (!rawDate) return "";
-
-            let dateStr = rawDate.toString().trim();
-            if (dateStr.includes('T')) {
-                dateStr = dateStr.split('T')[0];
-            }
-
-            if (dateStr.includes(' ') && !dateStr.includes('-')) {
-                const d = new Date(dateStr);
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const year = String(d.getFullYear()).slice(-2);
-                return `${day}-${month}-${year}`;
-            }
-
+            let dateStr = rawDate.toString().trim().split('T')[0].split(' ')[0];
             const parts = dateStr.split('-'); 
-            if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    const year = parts[0].slice(-2);
-                    const month = parts[1];
-                    const day = parts[2];
-                    return `${day}-${month}-${year}`;
-                }
-                return dateStr;
+            if (parts.length === 3 && parts[0].length === 4) {
+                return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
             }
-            
             return dateStr;
         }
 
-        // 🛡️ DUAL-LAYER CODE ROUTING PATTERN ASSERTION
         if (!userData || userData.name.trim() !== "Ken Seng Thoumoung" || userData.role !== 'Admin') {
             localStorage.removeItem('facultyUser');
             window.location.href = 'index.html';
         } else {
             document.getElementById('facName').innerText = userData.name;
             document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
-            document.getElementById('facRole').innerText = "System Administrator"; // Keeps dashboard look pristine
+            document.getElementById('facRole').innerText = "System Administrator";
             loadAdminDatabaseStreams();
         }
 
         function switchView(targetTab) {
+            // Hide all views first
+            document.getElementById('sectionRequests').classList.add('hidden');
+            document.getElementById('sectionHistory').classList.add('hidden');
+            document.getElementById('sectionDirectory').classList.add('hidden');
+            
+            document.getElementById('tabRequests').classList.remove('active');
+            document.getElementById('tabHistory').classList.remove('active');
+            document.getElementById('tabDirectory').classList.remove('active');
+
+            // Activate chosen view
             if (targetTab === 'Requests') {
                 document.getElementById('tabRequests').classList.add('active');
-                document.getElementById('tabHistory').classList.remove('active');
                 document.getElementById('sectionRequests').classList.remove('hidden');
-                document.getElementById('sectionHistory').classList.add('hidden');
-            } else {
-                document.getElementById('tabRequests').classList.remove('active');
+            } else if (targetTab === 'History') {
                 document.getElementById('tabHistory').classList.add('active');
-                document.getElementById('sectionRequests').classList.add('hidden');
                 document.getElementById('sectionHistory').classList.remove('hidden');
+            } else if (targetTab === 'Directory') {
+                document.getElementById('tabDirectory').classList.add('active');
+                document.getElementById('sectionDirectory').classList.remove('hidden');
+                loadFacultyDirectoryStream(); // Refresh metrics whenever tab is opened
             }
         }
 
         async function loadAdminDatabaseStreams() {
             try {
-                // Pass role validation context fields explicitly inside request body payloads
                 const response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ 
-                        action: 'fetchLeaves',
-                        facultyId: userData.facultyId,
-                        role: userData.role 
-                    }) 
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role }) 
                 });
                 const allRows = await response.json();
                 
@@ -187,16 +201,44 @@
             } catch(e) { console.log(e); }
         }
 
+        // 📊 NEW FETCH LOGIC FOR THE SUMMARY ROSTER
+        async function loadFacultyDirectoryStream() {
+            const tableBody = document.getElementById('directoryTableBody');
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchFacultyPool', adminRole: userData.role })
+                });
+                const profiles = await response.json();
+                tableBody.innerHTML = '';
+
+                if (!profiles || profiles.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-muted text-center py-3">No instructor data files found.</td></tr>`;
+                    return;
+                }
+
+                profiles.forEach(fac => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td><code>${fac.facultyId}</code></td>
+                            <td><b>${fac.name}</b></td>
+                            <td><span class="text-secondary">${fac.role} Instructor</span></td>
+                            <td class="text-center">${fac.totalLeaves}</td>
+                            <td class="text-center text-danger font-weight-bold">${fac.usedLeaves}</td>
+                            <td class="text-center text-pending-count">${fac.pendingLeaves}</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">Error syncing metrics database.</td></tr>`;
+            }
+        }
+
         async function executeDecision(reqId, decision) {
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ 
-                        action: 'reviewLeave', 
-                        adminRole: userData.role, // Passes "Admin" safely via session memory injection token
-                        requestId: reqId, 
-                        status: decision 
-                    })
+                    body: JSON.stringify({ action: 'reviewLeave', adminRole: userData.role, requestId: reqId, status: decision })
                 });
                 const result = await response.text();
                 if (result === "STATUS_UPDATED") {
