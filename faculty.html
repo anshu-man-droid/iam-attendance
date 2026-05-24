@@ -131,32 +131,31 @@
         
         function formatDateString(rawDate) {
             if (!rawDate) return "";
-            let dateStr = rawDate.toString().trim();
-            if (dateStr.includes('T')) {
-                dateStr = dateStr.split('T')[0];
-            }
-            if (dateStr.includes(' ') && !dateStr.includes('-')) {
-                const d = new Date(dateStr);
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = String(d.getMonth() + 1).padStart(2, '0');
-                const year = String(d.getFullYear()).slice(-2);
-                return `${day}-${month}-${year}`;
-            }
+            let dateStr = rawDate.toString().trim().split('T')[0].split(' ')[0];
+            
+            // Direct string manipulation: converts YYYY-MM-DD cleanly to DD-MM-YYYY
             const parts = dateStr.split('-'); 
-            if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
-                }
-                return dateStr;
+            if (parts.length === 3 && parts[0].length === 4) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
             }
             return dateStr;
         }
         
-        const userData = JSON.parse(localStorage.getItem('facultyUser'));
+        let userData = JSON.parse(localStorage.getItem('facultyUser'));
 
         if (!userData) {
             window.location.href = 'index.html';
         } else {
+            // 🧼 GLOBAL TIMEZONE ERROR PURGE INTERCEPTOR
+            // Cleans up time shifts from incoming session memory variables automatically for ALL accounts
+            if (userData.regDate) {
+                let checkDate = userData.regDate.toString();
+                if (checkDate.includes('T') || checkDate.includes(' ') || checkDate.includes('GMT')) {
+                    userData.regDate = checkDate.split('T')[0].split(' ')[0].trim();
+                    localStorage.setItem('facultyUser', JSON.stringify(userData));
+                }
+            }
+
             document.getElementById('facName').innerText = userData.name;
             document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
             
@@ -165,35 +164,25 @@
             document.getElementById('statTotal').innerText = userData.totalLeaves !== undefined ? userData.totalLeaves : "4";
             
             // 🧭 STEALTH INTERFACE ROUTING SYSTEM
-            // 1. Give him his clean, normal instructor label on screen
             document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
 
-            // 2. Check the memory token we injected during login
             if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Admin") {
-                // Keep his gateway access button active
                 document.getElementById('backToGatewayBtn').classList.remove('hidden');
             } else {
-                // Regular faculty members keep the button locked away
                 document.getElementById('backToGatewayBtn').classList.add('hidden');
             }
 
-            // 🔒 BULLETPROOF CALENDAR BLOCKER
+            // 🔒 BULLETPROOF CALENDAR BLOCKER (Global Text Matching)
             if (userData.regDate) {
                 try {
-                    // Extract the clean text portion before any "T" or spaces (e.g., "2026-03-20")
-                    let rawDateStr = userData.regDate.toString().split('T')[0].split(' ')[0].trim();
-                    
-                    // Split the string parts: [YYYY, MM, DD]
+                    let rawDateStr = userData.regDate.toString().trim();
                     const parts = rawDateStr.split('-');
                     
                     if (parts.length === 3 && parts[0].length === 4) {
-                        const htmlMinFormat = `${parts[0]}-${parts[1]}-${parts[2]}`; // Restores "2026-03-20" exactly
-                        
                         const calendarInput = document.getElementById('leaveCalendar');
-                        calendarInput.min = htmlMinFormat; // Strictly binds the minimum boundary
-                        calendarInput.value = "";          // Clears stale inputs
-                        
-                        console.log("Boundary forced cleanly via raw string extraction:", htmlMinFormat);
+                        calendarInput.min = rawDateStr; // Locks calendar minimum date exactly to the sheet string
+                        calendarInput.value = "";          
+                        console.log("Global boundary forced successfully:", rawDateStr);
                     }
                 } catch(err) {
                     console.error("Boundary enforcement error:", err);
@@ -266,6 +255,11 @@
                         userData.leaveBalance = freshData.leaveBalance;
                         userData.usedLeaves = freshData.usedLeaves;
                         userData.totalLeaves = freshData.totalLeaves;
+                        
+                        // Clean up any background date stamps received from re-sync calls before saving
+                        if (freshData.regDate) {
+                            userData.regDate = freshData.regDate.toString().split('T')[0].split(' ')[0].trim();
+                        }
                         localStorage.setItem('facultyUser', JSON.stringify(userData));
 
                         document.getElementById('statTotal').innerText = freshData.totalLeaves;
@@ -277,17 +271,16 @@
         }
 
         async function submitLeaveRequest() {
-            const dateVal = document.getElementById('leaveCalendar').value; // Formatted as "YYYY-MM-DD"
+            const dateVal = document.getElementById('leaveCalendar').value; // Formatted naturally as "YYYY-MM-DD"
             const typeVal = document.getElementById('leaveType').value;
             if(!dateVal) return alert("Please pick a date first.");
 
-            // 🔒 STRIP TIMEZONE ROLLOVERS FROM THE SUBMISSION VALIDATOR
+            // 🔒 GLOBAL SUBMISSION BOUNDARY COMPLIANCE CHECK
             if (userData.regDate) {
                 try {
-                    // Extracts the clean text portion exactly (e.g., "2026-03-20")
-                    let regDateCleanText = userData.regDate.toString().split('T')[0].split(' ')[0].trim();
+                    let regDateCleanText = userData.regDate.toString().trim();
                     
-                    // Direct text comparison! (e.g., if "2026-03-18" < "2026-03-20")
+                    // Direct text comparison prevents browser time zone shifts entirely
                     if (dateVal < regDateCleanText) {
                         return alert(`❌ Access Denied: You cannot request leave before your official registration date (${formatDateString(regDateCleanText)})!`);
                     }
