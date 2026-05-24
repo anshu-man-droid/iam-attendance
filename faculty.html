@@ -213,7 +213,7 @@
                     body: JSON.stringify({
                         action: 'login',
                         facultyId: userData.facultyId,
-                        password: userData.password
+                        password: userData.password || "SESSION_RESYNC"
                     })
                 });
                 const freshData = await response.json();
@@ -260,7 +260,7 @@
                 if (userData) {
                     const updateResp = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ action: 'login', facultyId: userData.facultyId, password: userData.password })
+                        body: JSON.stringify({ action: 'login', facultyId: userData.facultyId, password: userData.password || "SESSION_RESYNC" })
                     });
                     const freshData = await updateResp.json();
                     
