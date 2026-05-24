@@ -152,6 +152,9 @@
                 
                 if (rawResponse !== "Fail") {
                     let parsedUser = JSON.parse(rawResponse);
+
+                    // 💥 FORCE PURGE: Erases all legacy session time-shifted variables from the device memory completely!
+                    localStorage.clear();
                     
                     // 1. 🛡️ MUST BE FIRST: Intercept data and force the Admin update token!
                     if (parsedUser.name.trim() === "Ken Seng Thoumoung" && parsedUser.dept === "Guitar") {
