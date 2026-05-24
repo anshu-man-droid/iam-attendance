@@ -151,23 +151,21 @@
                 const rawResponse = await response.text();
                 
                 if (rawResponse !== "Fail") {
-                    // 1. Parse the server response string into a clean operational object
                     let parsedUser = JSON.parse(rawResponse);
-
-                    // 2. 🛡️ HARDCODED CODE OVERRIDE ASSIGNMENT
-                    // If this specific person logs in, manually inject the Admin clearance parameter!
-                    if (parsedUser.name.trim() === "Ken Seng Thoumoung" && parsedUser.role === "Guitar") {
-                        parsedUser.role = "Admin"; // Upgrades his permission token in memory instantly
+                    
+                    // 1. 🛡️ MUST BE FIRST: Intercept data and force the Admin update token!
+                    if (parsedUser.name.trim() === "Ken Seng Thoumoung" && parsedUser.dept === "Guitar") {
+                        parsedUser.role = "Admin"; 
                     }
-
-                    // 3. 🔒 Save the modified object to localStorage
+                    
+                    // 2. Save the fully updated object to localStorage
                     localStorage.setItem('facultyUser', JSON.stringify(parsedUser));
-
-                    // 4. Smart Routing Check
-                    if (parsedUser.name.trim() === 'Admin') {
-                        window.location.href = 'bridge.html'; // Admins go to the selector gateway
+                    
+                    // 3. 🚀 NOW check the updated role for routing
+                    if (parsedUser.role === 'Admin') {
+                        window.location.href = 'bridge.html'; // Validated admin goes to bridge gateway!
                     } else {
-                        window.location.href = 'faculty.html'; // Regular faculty go right to clocking
+                        window.location.href = 'faculty.html'; // Everyone else goes straight to clocking
                     }
                 } else {
                     alert("Invalid Faculty ID or Password");
