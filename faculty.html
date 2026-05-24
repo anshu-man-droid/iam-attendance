@@ -277,14 +277,22 @@
         }
 
         async function submitLeaveRequest() {
-            const dateVal = document.getElementById('leaveCalendar').value;
+            const dateVal = document.getElementById('leaveCalendar').value; // Formatted as "YYYY-MM-DD"
             const typeVal = document.getElementById('leaveType').value;
             if(!dateVal) return alert("Please pick a date first.");
 
+            // 🔒 STRIP TIMEZONE ROLLOVERS FROM THE SUBMISSION VALIDATOR
             if (userData.regDate) {
-                const regDateCleanText = userData.regDate.toString().split('T')[0].split(' ')[0];
-                if (dateVal < regDateCleanText) {
-                    return alert(`❌ Access Denied: You cannot request leave before your official registration date (${formatDateString(regDateCleanText)})!`);
+                try {
+                    // Extracts the clean text portion exactly (e.g., "2026-03-20")
+                    let regDateCleanText = userData.regDate.toString().split('T')[0].split(' ')[0].trim();
+                    
+                    // Direct text comparison! (e.g., if "2026-03-18" < "2026-03-20")
+                    if (dateVal < regDateCleanText) {
+                        return alert(`❌ Access Denied: You cannot request leave before your official registration date (${formatDateString(regDateCleanText)})!`);
+                    }
+                } catch (err) {
+                    console.error("Submission boundary enforcement error:", err);
                 }
             }
             
