@@ -152,14 +152,19 @@
                 
                 if (rawResponse !== "Fail") {
                     // 1. Parse the server response string into a clean operational object
-                    const parsedUser = JSON.parse(rawResponse);
-                    
-                    // 2. 🔒 FORCE COMPACT TEXT STORAGE: Stringify the parsed object explicitly
-                    // This ensures all pages (like faculty.html) can read fresh backend columns without crashing!
+                    let parsedUser = JSON.parse(rawResponse);
+
+                    // 2. 🛡️ HARDCODED CODE OVERRIDE ASSIGNMENT
+                    // If this specific person logs in, manually inject the Admin clearance parameter!
+                    if (parsedUser.name.trim() === "Ken Seng Thoumoung" && parsedUser.role === "Guitar") {
+                        parsedUser.role = "Admin"; // Upgrades his permission token in memory instantly
+                    }
+
+                    // 3. 🔒 Save the modified object to localStorage
                     localStorage.setItem('facultyUser', JSON.stringify(parsedUser));
-                    
-                    // 3. Smart Routing Check: Route based on Admin status
-                    if (parsedUser.name.trim() === "Ken Seng Thoumoung" && parsedUser.role === 'Guitar') {
+
+                    // 4. Smart Routing Check
+                    if (parsedUser.name.trim() === 'Admin') {
                         window.location.href = 'bridge.html'; // Admins go to the selector gateway
                     } else {
                         window.location.href = 'faculty.html'; // Regular faculty go right to clocking

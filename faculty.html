@@ -164,16 +164,16 @@
             document.getElementById('statUsed').innerText = userData.usedLeaves !== undefined ? userData.usedLeaves : "0";
             document.getElementById('statTotal').innerText = userData.totalLeaves !== undefined ? userData.totalLeaves : "4";
             
-            // 🧭 AUTOMATIC NAME + ROLE MATCHING SYSTEM (STEALTH MODE)
-            // Sets their dynamic layout title directly from their spreadsheet department column
+            // 🧭 STEALTH INTERFACE ROUTING SYSTEM
+            // 1. Give him his clean, normal instructor label on screen
             document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
 
-            if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Guitar") {
-                // Perfect, verified verification match: Grant Ken Seng his Admin navigation switch links
+            // 2. Check the memory token we injected during login
+            if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Admin") {
+                // Keep his gateway access button active
                 document.getElementById('backToGatewayBtn').classList.remove('hidden');
-                console.log("Stealth Admin console initialized for:", userData.name);
             } else {
-                // Regular view parameters for everyone else, explicitly locking down visibility options
+                // Regular faculty members keep the button locked away
                 document.getElementById('backToGatewayBtn').classList.add('hidden');
             }
 
