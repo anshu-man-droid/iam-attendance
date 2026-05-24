@@ -180,22 +180,20 @@
             // 🔒 BULLETPROOF CALENDAR BLOCKER
             if (userData.regDate) {
                 try {
-                    let rawDateStr = userData.regDate.toString().split('T')[0].split(' ')[0];
-                    let d = new Date(rawDateStr.replace(/-/g, '/'));
+                    // Extract the clean text portion before any "T" or spaces (e.g., "2026-03-20")
+                    let rawDateStr = userData.regDate.toString().split('T')[0].split(' ')[0].trim();
                     
-                    if (isNaN(d.getTime())) {
-                        d = new Date(userData.regDate);
-                    }
-
-                    if (!isNaN(d.getTime())) {
-                        const year = d.getFullYear();
-                        const month = String(d.getMonth() + 1).padStart(2, '0');
-                        const day = String(d.getDate()).padStart(2, '0');
+                    // Split the string parts: [YYYY, MM, DD]
+                    const parts = rawDateStr.split('-');
+                    
+                    if (parts.length === 3 && parts[0].length === 4) {
+                        const htmlMinFormat = `${parts[0]}-${parts[1]}-${parts[2]}`; // Restores "2026-03-20" exactly
                         
-                        const htmlMinFormat = `${year}-${month}-${day}`;
                         const calendarInput = document.getElementById('leaveCalendar');
-                        calendarInput.min = htmlMinFormat;
-                        calendarInput.value = "";
+                        calendarInput.min = htmlMinFormat; // Strictly binds the minimum boundary
+                        calendarInput.value = "";          // Clears stale inputs
+                        
+                        console.log("Boundary forced cleanly via raw string extraction:", htmlMinFormat);
                     }
                 } catch(err) {
                     console.error("Boundary enforcement error:", err);
