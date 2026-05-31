@@ -34,7 +34,8 @@
 
         /* Directory Table Styling */
         .directory-table { width: 100%; color: #fff; border-collapse: collapse; }
-        .directory-table th { color: #ffcc00; border-bottom: 2px solid #222; padding: 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .directory-table th { border-bottom: 2px solid #222; padding: 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+        .directory-table th:first-child, .directory-table th:nth-child(2), .directory-table th:nth-child(3) { text-align: left; }
         .directory-table td { padding: 14px 12px; border-bottom: 1px solid #222; font-size: 0.95rem; vertical-align: middle; }
         .directory-table tr:hover { background: #161616; }
         .text-pending-count { color: #ffcc00; font-weight: bold; }
@@ -82,18 +83,22 @@
         <h4 style="color: #ffcc00; font-weight: 700; margin-bottom: 20px;">Faculty Leave Balance Records</h4>
         <div class="table-responsive">
             <table class="directory-table">
-                <thead>
+                <thead class="text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">
                     <tr>
                         <th>Faculty ID</th>
                         <th>Instructor Name</th>
                         <th>Department/Role</th>
-                        <th class="text-center">Total Leaves</th>
-                        <th class="text-center">Used Leaves</th>
-                        <th class="text-center">Pending Balance</th>
+                        <th class="text-warning text-center">Total CL</th>
+                        <th class="text-warning text-center">Used CL</th>
+                        <th class="text-warning text-center">Pending CL</th>
+                        <th class="text-info text-center">Total SL</th>
+                        <th class="text-info text-center">Used SL</th>
+                        <th class="text-info text-center">Pending SL</th>
+                        <th class="text-center" style="color: #ffcc00;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="directoryTableBody">
-                    <tr><td colspan="6" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>
+                    <tr><td colspan="9" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -103,9 +108,23 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
         const userData = JSON.parse(localStorage.getItem('facultyUser'));
 
+        // 🔄 UPGRADED MULTI-DATE COMPLIANT FORMATTER FOR ADMIN VIEWS
         function formatDateString(rawDate) {
             if (!rawDate) return "";
-            let dateStr = rawDate.toString().trim().split('T')[0].split(' ')[0];
+            let str = rawDate.toString().trim();
+            
+            if (str.includes(',')) {
+                return str.split(',').map(datePart => {
+                    let cleanPart = datePart.trim().split('T')[0].split(' ')[0];
+                    const parts = cleanPart.split('-');
+                    if (parts.length === 3 && parts[0].length === 4) {
+                        return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; 
+                    }
+                    return cleanPart;
+                }).join(', '); 
+            }
+            
+            let dateStr = str.split('T')[0].split(' ')[0];
             const parts = dateStr.split('-'); 
             if (parts.length === 3 && parts[0].length === 4) {
                 return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
@@ -124,7 +143,6 @@
         }
 
         function switchView(targetTab) {
-            // Hide all views first
             document.getElementById('sectionRequests').classList.add('hidden');
             document.getElementById('sectionHistory').classList.add('hidden');
             document.getElementById('sectionDirectory').classList.add('hidden');
@@ -133,7 +151,6 @@
             document.getElementById('tabHistory').classList.remove('active');
             document.getElementById('tabDirectory').classList.remove('active');
 
-            // Activate chosen view
             if (targetTab === 'Requests') {
                 document.getElementById('tabRequests').classList.add('active');
                 document.getElementById('sectionRequests').classList.remove('hidden');
@@ -143,7 +160,7 @@
             } else if (targetTab === 'Directory') {
                 document.getElementById('tabDirectory').classList.add('active');
                 document.getElementById('sectionDirectory').classList.remove('hidden');
-                loadFacultyDirectoryStream(); // Refresh metrics whenever tab is opened
+                loadFacultyDirectoryStream(); 
             }
         }
 
@@ -201,7 +218,7 @@
             } catch(e) { console.log(e); }
         }
 
-        // 📊 NEW FETCH LOGIC FOR THE SUMMARY ROSTER
+        // 📊 EDITED: INLINE EDITABLE MULTI-COLUMN STREAM RENDERING ENGINE FOR ROSTER VIEWS
         async function loadFacultyDirectoryStream() {
             const tableBody = document.getElementById('directoryTableBody');
             try {
@@ -213,24 +230,97 @@
                 tableBody.innerHTML = '';
 
                 if (!profiles || profiles.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-muted text-center py-3">No instructor data files found.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="10" class="text-muted text-center py-3">No instructor data files found.</td></tr>`;
                     return;
                 }
 
-                profiles.forEach(fac => {
+                profiles.forEach((fac, index) => {
                     tableBody.innerHTML += `
-                        <tr>
+                        <tr id="row_${fac.facultyId}">
                             <td><code>${fac.facultyId}</code></td>
                             <td><b>${fac.name}</b></td>
                             <td><span class="text-secondary">${fac.role} Instructor</span></td>
-                            <td class="text-center">${fac.totalLeaves}</td>
-                            <td class="text-center text-danger font-weight-bold">${fac.usedLeaves}</td>
-                            <td class="text-center text-pending-count">${fac.pendingLeaves}</td>
+                            
+                            <!-- 🟨 Editable Casual Leave Balance Matrix Inputs -->
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:70px; height:35px;" id="clTotal_${index}" value="${fac.clTotal}" oninput="handleBalanceMath(${index}, 'cl', 'total')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:70px; height:35px;" id="clUsed_${index}" value="${fac.clUsed}" oninput="handleBalanceMath(${index}, 'cl', 'used')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-pending-count border-secondary" style="width:70px; height:35px;" id="clPending_${index}" value="${fac.clPending}" oninput="handleBalanceMath(${index}, 'cl', 'pending')"></td>
+                            
+                            <!-- 🟦 Editable Sick Leave Balance Matrix Inputs -->
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:70px; height:35px;" id="slTotal_${index}" value="${fac.slTotal}" oninput="handleBalanceMath(${index}, 'sl', 'total')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:70px; height:35px;" id="slUsed_${index}" value="${fac.slUsed}" oninput="handleBalanceMath(${index}, 'sl', 'used')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-info border-secondary fw-bold" style="width:70px; height:35px;" id="slPending_${index}" value="${fac.slPending}" oninput="handleBalanceMath(${index}, 'sl', 'pending')"></td>
+                            
+                            <!-- 💾 Action Save Button Block Element -->
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-warning fw-bold py-1 px-3" onclick="saveInlineFacultyMetrics('${fac.facultyId}', ${index})">Save</button>
+                            </td>
                         </tr>
                     `;
                 });
             } catch (err) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-3">Error syncing metrics database.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="10" class="text-danger text-center py-3">Error syncing metrics database.</td></tr>`;
+            }
+        }
+
+        // 🧮 AUTOMATED AUTO-CALCULATION BALANCE ENGINE FOR DIRECTORY ROWS
+        function handleBalanceMath(index, type, fieldChanged) {
+            const totalInput = document.getElementById(`${type}Total_${index}`);
+            const usedInput = document.getElementById(`${type}Used_${index}`);
+            const pendingInput = document.getElementById(`${type}Pending_${index}`);
+
+            let total = Number(totalInput.value) || 0;
+            let used = Number(usedInput.value) || 0;
+            let pending = Number(pendingInput.value) || 0;
+
+            if (fieldChanged === 'pending') {
+                // If pending changes, update Used: Used = Total - Pending
+                used = total - pending;
+                if (used < 0) used = 0;
+                usedInput.value = used;
+            } 
+            else if (fieldChanged === 'used') {
+                // If used changes, update Pending: Pending = Total - Used
+                pending = total - used;
+                if (pending < 0) pending = 0;
+                pendingInput.value = pending;
+            } 
+            else if (fieldChanged === 'total') {
+                // If total changes, reset Used to 0 and match Pending to Total
+                used = 0;
+                pending = total;
+                usedInput.value = 0;
+                pendingInput.value = pending;
+            }
+        }
+
+        // 🚀 TRANSMIT UPDATED VALUES TO GOOGLE SPREADSHEET CELL COORDINATES
+        async function saveInlineFacultyMetrics(facultyId, index) {
+            const payload = {
+                action: 'updateFacultyBalancesInline',
+                adminRole: userData.role,
+                facultyId: facultyId,
+                clTotal: Number(document.getElementById(`clTotal_${index}`).value) || 0,
+                clUsed: Number(document.getElementById(`clUsed_${index}`).value) || 0,
+                clPending: Number(document.getElementById(`clPending_${index}`).value) || 0,
+                slTotal: Number(document.getElementById(`slTotal_${index}`).value) || 0,
+                slUsed: Number(document.getElementById(`slUsed_${index}`).value) || 0,
+                slPending: Number(document.getElementById(`slPending_${index}`).value) || 0
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.text();
+                if (result === "INLINE_BALANCES_UPDATED") {
+                    alert(`✅ Successfully updated balances for Faculty ID: ${facultyId}`);
+                } else {
+                    alert(`❌ Save Failed: ${result}`);
+                }
+            } catch (err) {
+                alert("Connection error occurred while saving row properties.");
             }
         }
 
