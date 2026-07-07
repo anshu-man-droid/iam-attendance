@@ -21,7 +21,6 @@
         .menu-card:hover { border-color: #ffcc00; transform: translateY(-5px); }
         .menu-card h3 { font-weight: 700; color: #ffcc00; }
         
-        /* Metric Cards Styling */
         .metric-card { background: #111111; border: 1px solid #222; border-radius: 20px; padding: 20px; text-align: center; }
         .metric-val { font-size: 2rem; font-weight: 700; color: #ffcc00; margin-top: 5px; }
         .metric-label { font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
@@ -30,14 +29,12 @@
         .section-title { color: #ffcc00; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         .form-label { font-weight: 700; font-size: 0.8rem; color: #ffcc00; text-transform: uppercase; margin-bottom: 8px; }
         
-        /* Custom Overrides for Flatpickr Text Field to align with UI design */
         .form-control { background: #ffcc00 !important; border: 2px solid #000000 !important; border-radius: 12px !important; padding: 10px 15px !important; color: #000 !important; font-weight: bold !important; }
         .btn-yellow { background: #ffcc00; color: #000; font-weight: 700; border-radius: 12px; padding: 10px 20px; border: none; text-transform: uppercase; }
         .btn-yellow:hover { background: #fff; color: #000; }
         .logout-btn { color: #ffcc00; font-weight: bold; text-decoration: none; }
         .hidden { display: none !important; }
         
-        /* Status Badges */
         .badge-pending { background: #ffc107; color: #000; padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
         .badge-approved { background: #198754; color: #fff; padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
         .badge-rejected { background: #dc3545; color: #fff; padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
@@ -45,10 +42,14 @@
         .history-table th { color: #ffcc00; border-bottom: 1px solid #333; padding: 10px; }
         .history-table td { padding: 12px 10px; border-bottom: 1px solid #222; font-size: 0.95rem; }
 
-        /* Flatpickr Custom Styling to blend cleanly with theme */
         .flatpickr-calendar { background: #111111 !important; border: 1px solid #333 !important; box-shadow: none !important; }
         .flatpickr-day.selected { background: #ffcc00 !important; border-color: #ffcc00 !important; color: #000 !important; font-weight: bold; }
         .flatpickr-day:hover { background: #222 !important; }
+
+        .nav-tabs { border-bottom: 2px solid #222; margin-bottom: 25px; }
+        .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; text-decoration: none; }
+        .nav-link:hover { color: #ffcc00; }
+        .nav-link.active { background: transparent !important; color: #ffcc00 !important; border-bottom: 3px solid #ffcc00 !important; }
     </style>
 </head>
 <body class="container">
@@ -67,67 +68,65 @@
         </div>
     </div>
 
-    <div class="row g-4 mt-2">
-        <div class="col-md-6">
-            <div class="menu-card" onclick="logTime('Logged In')"><h3>In</h3></div>
-        </div>
-        <div class="col-md-6">
-            <div class="menu-card" onclick="logTime('Logged Out')"><h3>Out</h3></div>
-        </div>
-    </div>
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link active" href="faculty.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="faculty_calender.html">Leave Calendar View</a></li>
+        <li class="nav-item"><a class="nav-link" href="faculty_analysis.html">Monthly Analysis</a></li>
+    </ul>
 
-    <div class="row g-3 mt-4">
-        <div class="col-4 col-md-4">
-            <div class="metric-card">
-                <div class="metric-label" id="lblTotal">Total CL</div>
-                <div class="metric-val" id="statTotal">--</div>
-            </div>
+    <div id="viewMainDashboard">
+        <div class="row g-4 mt-2">
+            <div class="col-md-6"><div class="menu-card" onclick="logTime('Logged In')"><h3>In</h3></div></div>
+            <div class="col-md-6"><div class="menu-card" onclick="logTime('Logged Out')"><h3>Out</h3></div></div>
         </div>
-        <div class="col-4 col-md-4">
-            <div class="metric-card">
-                <div class="metric-label" id="lblUsed">Used CL</div>
-                <div class="metric-val" id="statUsed">--</div>
-            </div>
-        </div>
-        <div class="col-4 col-md-4">
-            <div class="metric-card" style="border-color: #ffcc00;">
-                <div class="metric-label" id="lblPending" style="color: #ffcc00;">Pending CL</div>
-                <div class="metric-val" id="statPending">--</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="dashboard-section">
-        <h4 class="section-title">Request Leave Dates</h4>
-        <!-- Added align-items-end to keep all elements aligned to the bottom boundary baseline -->
-        <div class="row g-3 align-items-end d-flex">
-            <div class="col-md-5" id="calendarCol">
-                <label class="form-label">Select Leaves on Calendar</label>
-                <input type="text" id="leaveCalendar" class="form-control" placeholder="Click to choose dates..." style="height: 46px;">
+        <div class="row g-3 mt-4">
+            <div class="col-3 col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label" id="lblTotal">Total CL</div>
+                    <div class="metric-val" id="statTotal">--</div>
+                </div>
             </div>
-            <div class="col-md-4" id="typeCol">
-                <label class="form-label">Leave Type</label>
-                <select id="leaveType" class="form-select" onchange="updateLeaveTypeMetrics(); handleLeaveTypeChange();" style="background: #ffcc00; border: 2px solid #000; border-radius: 12px; padding: 10px; font-weight: bold; color: #000; height: 46px;">
-                    <option value="Casual Leave">Casual Leave (CL)</option>
-                    <option value="Sick Leave">Sick Leave (SL)</option>
-                </select>
+            <div class="col-3 col-md-3">
+                <div class="metric-card">
+                    <div class="metric-label" id="lblUsed">Used CL</div>
+                    <div class="metric-val" id="statUsed">--</div>
+                </div>
             </div>
-            <div class="col-md-3" id="submitBtnCol">
-                <!-- 🚀 Added an empty hidden/invisible label space wrapper to maintain row height matching across the inputs -->
-                <label class="form-label d-none d-md-block" style="visibility: hidden;">Spacer</label>
-                <button class="btn btn-yellow w-100 py-2" onclick="submitLeaveRequest()" style="height: 46px; line-height: 26px;">Submit Request</button>
+            <div class="col-3 col-md-3">
+                <div class="metric-card" style="border-color: #ffcc00;">
+                    <div class="metric-label" id="lblPending" style="color: #ffcc00;">Pending CL</div>
+                    <div class="metric-val" id="statPending">--</div>
+                </div>
+            </div>
+            <div class="col-3 col-md-3">
+                <div class="metric-card" style="border-color: #dc3545;">
+                    <div class="metric-label" style="color: #dc3545;">Current LOP</div>
+                    <div class="metric-val" id="statLOP" style="color: #ffffff;">0</div>
+                </div>
             </div>
         </div>
 
-        <!-- Dynamic Date Configuration Breakdowns Panel Grid -->
-        <div id="dynamicDateConfigurator" class="mt-4 p-3 hidden" style="background: #161616; border: 1px solid #333; border-radius: 16px;">
-            <h6 style="color: #ffcc00; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 15px;">
-                Configure Leave Durations Per Day
-            </h6>
-            <div id="dateSwitchesContainer" class="row g-2"></div>
+        <div class="dashboard-section">
+            <h4 class="section-title">Request Leave Dates</h4>
+            <div class="row g-3 align-items-end d-flex">
+                <div class="col-md-5" id="calendarCol">
+                    <label class="form-label">Select Leaves on Calendar</label>
+                    <input type="text" id="leaveCalendar" class="form-control" placeholder="Click to choose dates..." style="height: 46px;">
+                </div>
+                <div class="col-md-4" id="typeCol">
+                    <label class="form-label">Leave Type</label>
+                    <select id="leaveType" class="form-select" onchange="updateLeaveTypeMetrics(); handleLeaveTypeChange();" style="background: #ffcc00; border: 2px solid #000; border-radius: 12px; padding: 10px; font-weight: bold; color: #000; height: 46px;">
+                        <option value="Casual Leave">Casual Leave (CL)</option>
+                        <option value="Sick Leave">Sick Leave (SL)</option>
+                    </select>
+                </div>
+                <div class="col-md-3" id="submitBtnCol">
+                    <button class="btn btn-yellow w-100 py-2" onclick="submitLeaveRequest()" style="height: 46px; line-height: 26px;">Submit Request</button>
+                </div>
+            </div>
+            <div id="tokenCalculationFeedback" class="small text-warning mt-3 font-weight-bold" style="letter-spacing: 0.5px; font-size: 0.95rem;"></div>
         </div>
-
-        <div id="tokenCalculationFeedback" class="small text-warning mt-3 font-weight-bold" style="letter-spacing: 0.5px; font-size: 0.95rem;"></div>
     </div>
 
     <div class="dashboard-section">
@@ -135,11 +134,7 @@
         <div class="table-responsive">
             <table class="history-table">
                 <thead>
-                    <tr>
-                        <th>Leave Type</th>
-                        <th>Requested Date(s)</th>
-                        <th>Approval Status Update</th>
-                    </tr>
+                    <tr><th>Leave Type</th><th>Requested Date(s)</th><th>Approval Status Update</th></tr>
                 </thead>
                 <tbody id="leaveHistoryTableBody">
                     <tr><td colspan="3" class="text-muted text-center">Loading status logs...</td></tr>
@@ -149,132 +144,52 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
         let fpInstance = null; 
-        
-        // 🔄 UPGRADED MULTI-DATE COMPLIANT FORMATTER FOR FACULTY VIEW
+        let userData = JSON.parse(localStorage.getItem('facultyUser'));
+
         function formatDateString(rawDate) {
             if (!rawDate) return "";
             let str = rawDate.toString().trim();
-            
-            // 🍏 Handle multi-date batches cleanly by splitting and reformatting each component
             if (str.includes(',')) {
                 return str.split(',').map(datePart => {
                     let cleanPart = datePart.trim().split('T')[0].split(' ')[0];
                     const parts = cleanPart.split('-');
-                    if (parts.length === 3 && parts[0].length === 4) {
-                        return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; // Converts YYYY-MM-DD to DD-MM-YY
-                    }
+                    if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
                     return cleanPart;
-                }).join(', '); // Joins back together perfectly
+                }).join(', '); 
             }
-            
-            // Standard single-date conversion logic backup block
             let dateStr = str.split('T')[0].split(' ')[0];
             const parts = dateStr.split('-'); 
-            if (parts.length === 3 && parts[0].length === 4) {
-                return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
-            }
+            if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
             return dateStr;
         }
 
-        // 🔄 HANDLES VISIBILITY RULES WHEN CHANGING LEAVE TYPES
-        function handleLeaveTypeChange() {
-            const typeVal = document.getElementById('leaveType').value;
-            const configurator = document.getElementById('dynamicDateConfigurator');
-            
-            if (typeVal === "Casual Leave" || !fpInstance || fpInstance.selectedDates.length === 0) {
-                configurator.classList.add('hidden');
-            } else {
-                configurator.classList.remove('hidden');
-            }
-            generateDynamicDateGrid();
-        }
+        function handleLeaveTypeChange() { calculateFlexibleTokens(); }
+        function generateDynamicDateGrid() { calculateFlexibleTokens(); }
 
-        // 🗓️ GENERATES TOGGLES FOR EACH SELECTED CALENDAR DATE
-        function generateDynamicDateGrid() {
-            const container = document.getElementById('dateSwitchesContainer');
-            const typeVal = document.getElementById('leaveType').value;
-            const configurator = document.getElementById('dynamicDateConfigurator');
-            
-            container.innerHTML = '';
-            
-            if (!fpInstance || fpInstance.selectedDates.length === 0) {
-                configurator.classList.add('hidden');
-                document.getElementById('tokenCalculationFeedback').innerText = "";
-                return;
-            }
-
-            if (typeVal === "Casual Leave") {
-                configurator.classList.add('hidden');
-                calculateFlexibleTokens();
-                return;
-            }
-
-            configurator.classList.remove('hidden');
-
-            fpInstance.selectedDates.forEach((date, index) => {
-                const yyyy = date.getFullYear();
-                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                const dd = String(date.getDate()).padStart(2, '0');
-                const formattedDate = `${yyyy}-${mm}-${dd}`;
-
-                container.innerHTML += `
-                    <div class="col-md-6 d-flex align-items-center justify-content-between p-2 border-bottom" style="border-color: #222 !important;">
-                        <span class="fw-bold text-light small">${formattedDate}</span>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <input type="radio" class="btn-check" name="duration_${index}" id="half_${index}" value="1" autocomplete="off" checked onchange="calculateFlexibleTokens()">
-                            <label class="btn btn-outline-warning btn-sm px-2" for="half_${index}">Half Day (1T)</label>
-
-                            <input type="radio" class="btn-check" name="duration_${index}" id="full_${index}" value="2" autocomplete="off" onchange="calculateFlexibleTokens()">
-                            <label class="btn btn-outline-warning btn-sm px-2" for="full_${index}">Full Day (2T)</label>
-                        </div>
-                    </div>
-                `;
-            });
-
-            calculateFlexibleTokens();
-        }
-
-        // 📊 DYNAMIC TOTAL TOKEN CALCULATOR
         function calculateFlexibleTokens() {
             if (!fpInstance || fpInstance.selectedDates.length === 0) {
                 document.getElementById('tokenCalculationFeedback').innerText = "";
                 return 0;
             }
-            
             const typeVal = document.getElementById('leaveType').value;
             const totalDatesSelected = fpInstance.selectedDates.length;
-            
-            if (typeVal === "Casual Leave") {
-                document.getElementById('tokenCalculationFeedback').innerText = `Total CL Tokens to be Debited: ${totalDatesSelected}`;
-                return totalDatesSelected;
-            } else {
-                let totalSLTokensCost = 0;
-                fpInstance.selectedDates.forEach((_, index) => {
-                    const selectedRadio = document.querySelector(`input[name="duration_${index}"]:checked`);
-                    totalSLTokensCost += selectedRadio ? Number(selectedRadio.value) : 1;
-                });
-                
-                document.getElementById('tokenCalculationFeedback').innerText = `Total SL Tokens to be Debited: ${totalSLTokensCost} Token(s)`;
-                return totalSLTokensCost;
-            }
+            const shorthand = typeVal === "Casual Leave" ? "CL" : "SL";
+            document.getElementById('tokenCalculationFeedback').innerText = `Total ${shorthand} Tokens to be Debited: ${totalDatesSelected}`;
+            return totalDatesSelected;
         }
 
-        // 🔄 DYNAMIC UI METRICS CONTROLLER
         function updateLeaveTypeMetrics() {
             if (!userData) return;
             const activeType = document.getElementById('leaveType').value;
-            
             let total = 0, used = 0, pending = 0;
 
             if (activeType === "Casual Leave") {
                 document.getElementById('lblTotal').innerText = "Total CL";
                 document.getElementById('lblUsed').innerText = "Used CL";
                 document.getElementById('lblPending').innerText = "Pending CL";
-                
                 total = userData.totalCL !== undefined ? userData.totalCL : 12; 
                 used = userData.usedCL !== undefined ? userData.usedCL : 0;
                 pending = userData.pendingCL !== undefined ? userData.pendingCL : 12;
@@ -282,7 +197,6 @@
                 document.getElementById('lblTotal').innerText = "Total SL";
                 document.getElementById('lblUsed').innerText = "Used SL";
                 document.getElementById('lblPending').innerText = "Pending SL";
-                
                 total = userData.totalSL !== undefined ? userData.totalSL : 6; 
                 used = userData.usedSL !== undefined ? userData.usedSL : 0;
                 pending = userData.pendingSL !== undefined ? userData.pendingSL : 6;
@@ -291,13 +205,9 @@
             document.getElementById('statTotal').innerText = total;
             document.getElementById('statUsed').innerText = used;
             document.getElementById('statPending').innerText = pending;
-
-            if (fpInstance) {
-                fpInstance.clear(); 
-            }
+            document.getElementById('statLOP').innerText = userData.currentLOP !== undefined ? userData.currentLOP : 0;
+            if (fpInstance) { fpInstance.clear(); }
         }
-        
-        let userData = JSON.parse(localStorage.getItem('facultyUser'));
 
         if (!userData) {
             window.location.href = 'index.html';
@@ -309,7 +219,6 @@
                     localStorage.setItem('facultyUser', JSON.stringify(userData));
                 }
             }
-
             document.getElementById('facName').innerText = userData.name;
             document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
             document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
@@ -321,15 +230,12 @@
             }
 
             let minDateLimit = userData.regDate ? userData.regDate.toString().trim() : "2026-01-01";
-            
             fpInstance = flatpickr("#leaveCalendar", {
                 mode: "multiple",
                 dateFormat: "Y-m-d",
                 minDate: minDateLimit,
                 conjunction: ", ",
-                onChange: function() {
-                    generateDynamicDateGrid();
-                }
+                onChange: function() { generateDynamicDateGrid(); }
             });
 
             updateLeaveTypeMetrics();
@@ -342,22 +248,13 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        action: 'login',
-                        facultyId: userData.facultyId,
-                        password: userData.password || "SESSION_RESYNC"
-                    })
+                    body: JSON.stringify({ action: 'login', facultyId: userData.facultyId, password: userData.password || "SESSION_RESYNC" })
                 });
                 const freshData = await response.json();
                 if(freshData !== "Fail") {
-                    userData.totalCL = freshData.totalCL;
-                    userData.usedCL = freshData.usedCL;
-                    userData.pendingCL = freshData.pendingCL;
-                    
-                    userData.totalSL = freshData.totalSL;
-                    userData.usedSL = freshData.usedSL;
-                    userData.pendingSL = freshData.pendingSL;
-
+                    userData.totalCL = freshData.totalCL; userData.usedCL = freshData.usedCL; userData.pendingCL = freshData.pendingCL;
+                    userData.totalSL = freshData.totalSL; userData.usedSL = freshData.usedSL; userData.pendingSL = freshData.pendingSL;
+                    userData.currentLOP = freshData.currentLOP; 
                     localStorage.setItem('facultyUser', JSON.stringify(userData));
                     updateLeaveTypeMetrics();
                 }
@@ -366,253 +263,239 @@
 
         async function fetchUserLeaveHistory() {
             try {
+                const userRole = (userData && userData.role) ? userData.role : "Faculty";
+                const facId = (userData && userData.facultyId) ? userData.facultyId : "";
+
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role, caller: 'FacultyDashboard' })
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: facId, role: userRole, caller: 'FacultyDashboard' })
                 });
+                const resData = await response.json();
+                const list = resData.leaves ? resData.leaves : (Array.isArray(resData) ? resData : []);
                 
-                const list = await response.json();
                 const historyContainer = document.getElementById('leaveHistoryTableBody'); 
+                if (!historyContainer) return;
                 historyContainer.innerHTML = '';
 
                 if (!list || list.length === 0) {
                     historyContainer.innerHTML = `<tr><td colspan="3" class="text-muted text-center py-4">No leave entries found.</td></tr>`;
-                } else {
-                    list.reverse().forEach(req => {
-                        let statusBadge = '';
-                        if (req.status === 'Pending') statusBadge = '<span class="badge bg-warning text-dark">PENDING</span>';
-                        else if (req.status === 'Approved') statusBadge = '<span class="badge bg-success">APPROVED</span>';
-                        else statusBadge = '<span class="badge bg-danger">REJECTED</span>';
-
-                        historyContainer.innerHTML += `
-                            <tr>
-                                <td class="fw-bold text-uppercase" style="font-size: 0.85rem; color: #aaa; padding: 12px 10px; border-bottom: 1px solid #222;">${req.leaveType}</td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #222;"><b>${formatDateString(req.dates)}</b></td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #222;">${statusBadge}</td>
-                            </tr>
-                        `;
-                    });
+                    return;
                 }
 
-                if (userData) {
-                    const updateResp = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ 
-                            action: 'login', 
-                            facultyId: userData.facultyId, 
-                            password: userData.password || "SESSION_RESYNC" 
-                        })
-                    });
-                    const freshData = await updateResp.json();
-                    
-                    if (freshData !== "Fail") {
-                        userData.totalCL = freshData.totalCL;
-                        userData.usedCL = freshData.usedCL;
-                        userData.pendingCL = freshData.pendingCL;
-                        
-                        userData.totalSL = freshData.totalSL;
-                        userData.usedSL = freshData.usedSL;
-                        userData.pendingSL = freshData.pendingSL;
-                        
-                        if (freshData.regDate) {
-                            userData.regDate = freshData.regDate.toString().split('T')[0].split(' ')[0].trim();
-                        }
-                        
-                        localStorage.setItem('facultyUser', JSON.stringify(userData));
-                        updateLeaveTypeMetrics();
+                const renderedRows = [...list].reverse();
+                
+                renderedRows.forEach((req, idx) => {
+                    if (!req) return;
+
+                    let statusBadge = '';
+                    const currentStatus = req.status ? req.status.toString().trim() : 'Pending';
+
+                    if (currentStatus === 'Pending') statusBadge = '<span class="badge bg-warning text-dark status-toggle" style="cursor:pointer;">PENDING ▾</span>';
+                    else if (currentStatus === 'Approved') statusBadge = '<span class="badge bg-success status-toggle" style="cursor:pointer;">APPROVED ▾</span>';
+                    else statusBadge = '<span class="badge bg-danger status-toggle" style="cursor:pointer;">REJECTED ▾</span>';
+
+                    let rawLeaveType = req.leaveType ? req.leaveType.toString() : 'Leave Request';
+                    let baseTypeDisplay = rawLeaveType.split(':')[0]; 
+                    let breakdownHTML = '';
+
+                    let rawDatesStr = req.dates ? req.dates.toString() : '';
+                    let datesArray = rawDatesStr.split(',').map(d => d.trim()).filter(d => d !== '');
+
+                    if (currentStatus === 'Approved' && rawLeaveType.includes(':')) {
+                        try {
+                            let parts = rawLeaveType.split(':')[1].split(',');
+                            parts.forEach(part => {
+                                let trimmed = part.trim();
+                                let datePart = trimmed.split('(')[0];
+                                let typePart = trimmed.includes('(') ? trimmed.split('(')[1].replace(')', '') : 'CL';
+                                let badgeStyle = typePart === 'LOP' ? 'border: 1px solid #dc3545; color: #dc3545;' : 'border: 1px solid #ffcc00; color: #ffcc00;';
+                                breakdownHTML += `
+                                    <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded" style="background: #000; border: 1px solid #222;">
+                                        <span class="small fw-bold">${formatDateString(datePart)}</span>
+                                        <span class="small fw-bold px-2 py-1 rounded" style="${badgeStyle} font-size: 0.75rem;">${typePart === 'LOP' ? 'LOP (Unpaid)' : typePart + ' Token'}</span>
+                                    </div>`;
+                            });
+                        } catch (err) { breakdownHTML = `<div class="text-muted small">Error parsing approval details.</div>`; }
+                    } else if (currentStatus === 'Rejected') {
+                        datesArray.forEach(dStr => {
+                            breakdownHTML += `
+                                <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded" style="background: #000; border: 1px solid #222;">
+                                    <span class="small fw-bold">${formatDateString(dStr)}</span>
+                                    <span class="small fw-bold px-2 py-1 rounded" style="border: 1px solid #dc3545; color: #dc3545; font-size: 0.75rem;">Rejected</span>
+                                </div>`;
+                        });
+                    } else {
+                        datesArray.forEach(dStr => {
+                            breakdownHTML += `
+                                <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded" style="background: #000; border: 1px solid #222;">
+                                    <span class="small fw-bold">${formatDateString(dStr)}</span>
+                                    <span class="small fw-bold px-2 py-1 rounded" style="border: 1px solid #aaa; color: #aaa; font-size: 0.75rem;">Pending Review</span>
+                                </div>`;
+                        });
                     }
-                }
-            } catch(e) { console.log("Live token background synchronization failed:", e); }
+
+                    historyContainer.innerHTML += `
+                        <tr>
+                            <td class="fw-bold text-uppercase" style="font-size: 0.85rem; color: #aaa; padding: 12px 10px; border-bottom: 1px solid #222;">${baseTypeDisplay}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #222;"><b>${formatDateString(rawDatesStr)}</b></td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #222;" onclick="toggleBreakdownRow(${idx})">${statusBadge}</td>
+                        </tr>
+                        <tr id="breakdownRow_${idx}" class="hidden" style="background: #141414;">
+                            <td colspan="3" style="padding: 15px 20px; border-bottom: 1px solid #222;">
+                                <div style="max-width: 400px;">
+                                    <h6 class="text-warning small fw-bold text-uppercase mb-3" style="letter-spacing: 0.5px; font-size: 0.75rem;">Date Classification Breakdown:</h6>
+                                    ${breakdownHTML}
+                                </div>
+                            </td>
+                        </tr>`;
+                });
+            } catch(e) { 
+                console.log("History syncing error:", e);
+                const container = document.getElementById('leaveHistoryTableBody');
+                if (container) container.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-3">Error processing system sync logs.</td></tr>`;
+            }
         }
 
+        function toggleBreakdownRow(rowIndex) { document.getElementById(`breakdownRow_${rowIndex}`).classList.toggle('hidden'); }
+
         async function submitLeaveRequest() {
-            if (!fpInstance || fpInstance.selectedDates.length === 0) {
-                return alert("Please select one or more dates on the calendar first.");
-            }
-
+            if (!fpInstance || fpInstance.selectedDates.length === 0) { return alert("Please select one or more dates on the calendar first."); }
             const typeVal = document.getElementById('leaveType').value;
-            const selectedDatesArray = fpInstance.selectedDates.map(d => {
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            });
-
+            const selectedDatesArray = fpInstance.selectedDates.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
             selectedDatesArray.sort();
             const totalTokensRequested = calculateFlexibleTokens();
-
             const currentPendingBalance = Number(document.getElementById('statPending').innerText) || 0;
             const shorthandLabel = typeVal === "Casual Leave" ? "CL" : "SL";
 
-            if (currentPendingBalance <= 0) {
-                return alert(`❌ Access Denied: Your Pending ${shorthandLabel} balance is 0!`);
-            }
             if (totalTokensRequested > currentPendingBalance) {
-                return alert(`❌ Access Denied: This request requires ${totalTokensRequested} ${shorthandLabel} tokens, but you only have ${currentPendingBalance} available!`);
+                let unpaidSpilloverAmount = totalTokensRequested - currentPendingBalance;
+                let proceedWithSpillover = confirm(`ℹ️ Notice: You only have ${currentPendingBalance} ${shorthandLabel} token(s) remaining. Submitting this request will automatically allocate ${unpaidSpilloverAmount} day(s) as Loss of Pay (LOP / Unpaid Leave). Do you wish to proceed?`);
+                if (!proceedWithSpillover) return;
             }
 
-            // =================================================================
-            // 🔒 UPGRADED IMPLEMENTATION: ENFORCE NO CL/SL MIXING (APPROVED OR PENDING)
-            // =================================================================
-            let existingCLDates = [];
-            let existingSLDates = [];
-
-            // Scan the tracking table history to catch both APPROVED and PENDING blocks
-            const historyRows = document.querySelectorAll('#leaveHistoryTableBody tr');
+            let existingCLDates = []; let existingSLDates = [];
+            const historyRows = document.querySelectorAll('#leaveHistoryTableBody tr:not([id^="breakdownRow_"])');
             historyRows.forEach(row => {
                 const cells = row.getElementsByTagName('td');
                 if (cells.length >= 3) {
-                    const rowLeaveType = cells[0].innerText.toUpperCase();
-                    const rowDatesStr = cells[1].innerText.trim();
                     const rowStatus = cells[2].innerText.toUpperCase();
-
-                    // Track if it's an active system block (either Approved or Pending)
                     if (rowStatus.includes("APPROVED") || rowStatus.includes("PENDING")) {
-                        // Extract and normalize the dates
+                        const rowLeaveType = cells[0].innerText.toUpperCase();
+                        const rowDatesStr = cells[1].innerText.trim();
                         const rawDates = rowDatesStr.split(',').map(d => {
                             const p = d.trim().split('-');
-                            if (p.length === 3) {
-                                const year = p[2].length === 2 ? "20" + p[2] : p[2];
-                                return `${year}-${p[1]}-${p[0]}`; // Returns normalized YYYY-MM-DD
-                            }
+                            if (p.length === 3) { return `20${p[2]}-${p[1]}-${p[0]}`; }
                             return "";
                         }).filter(d => d !== "");
-
-                        if (rowLeaveType.includes("CASUAL")) {
-                            existingCLDates = existingCLDates.concat(rawDates);
-                        } else if (rowLeaveType.includes("SICK")) {
-                            existingSLDates = existingSLDates.concat(rawDates);
-                        }
+                        if (rowLeaveType.includes("CASUAL")) existingCLDates = existingCLDates.concat(rawDates);
+                        else if (rowLeaveType.includes("SICK")) existingSLDates = existingSLDates.concat(rawDates);
                     }
                 }
             });
 
-            // 🛑 RULE 1: BLOCK DOUBLE-BOOKINGS FOR EXISTING DATES
-            const allActiveDates = existingCLDates.concat(existingSLDates);
             for (let targetDate of selectedDatesArray) {
-                if (allActiveDates.includes(targetDate)) {
-                    return alert(`❌ Access Denied: You already have an active (Approved/Pending) leave request on ${formatDateString(targetDate)}!`);
+                let currentTargetTime = new Date(targetDate.replace(/-/g, '/'));
+                let dayBeforeObj = new Date(currentTargetTime.getTime() - (24 * 60 * 60 * 1000));
+                let dayAfterObj = new Date(currentTargetTime.getTime() + (24 * 60 * 60 * 1000));
+
+                let dayBeforeStr = `${dayBeforeObj.getFullYear()}-${String(dayBeforeObj.getMonth() + 1).padStart(2, '0')}-${String(dayBeforeObj.getDate()).padStart(2, '0')}`;
+                let dayAfterStr = `${dayAfterObj.getFullYear()}-${String(dayAfterObj.getMonth() + 1).padStart(2, '0')}-${String(dayAfterObj.getDate()).padStart(2, '0')}`;
+
+                if (existingCLDates.concat(existingSLDates).includes(targetDate)) {
+                    return alert(`❌ Access Denied: You already have an active leave request on ${formatDateString(targetDate)}!`);
+                }
+                if (existingCLDates.concat(existingSLDates).includes(dayBeforeStr)) {
+                    return alert(`❌ Policy Violation: You cannot request a leave on ${formatDateString(targetDate)} because you have an active leave on the day before (${formatDateString(dayBeforeStr)}).`);
+                }
+                if (existingCLDates.concat(existingSLDates).includes(dayAfterStr)) {
+                    return alert(`❌ Policy Violation: You cannot request a leave on ${formatDateString(targetDate)} because you have an active leave on the day after (${formatDateString(dayAfterStr)}).`);
                 }
             }
 
-            // 🛑 RULE 2: STRICT BACK-TO-BACK CL/SL CROSSOVER BLOCK (NEIGHBORING DATES)
-            for (let targetDate of selectedDatesArray) {
-                const dateParts = targetDate.split('-');
-                // Safely create date objects without timezone drop-backs
-                const currentTarget = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]));
-                
-                // Calculate calendar neighbor strings precisely
-                const dayBeforeObj = new Date(currentTarget.getTime() - (24 * 60 * 60 * 1000));
-                const dayAfterObj = new Date(currentTarget.getTime() + (24 * 60 * 60 * 1000));
-
-                const dayBeforeStr = `${dayBeforeObj.getFullYear()}-${String(dayBeforeObj.getMonth() + 1).padStart(2, '0')}-${String(dayBeforeObj.getDate()).padStart(2, '0')}`;
-                const dayAfterStr = `${dayAfterObj.getFullYear()}-${String(dayAfterObj.getMonth() + 1).padStart(2, '0')}-${String(dayAfterObj.getDate()).padStart(2, '0')}`;
-
-                if (typeVal === "Casual Leave") {
-                    // If requesting a CL, make sure the adjacent days do not have an applied SL
-                    if (existingSLDates.includes(dayBeforeStr) || existingSLDates.includes(dayAfterStr)) {
-                        return alert(`❌ Access Denied: Policy rules prohibit combining Casual Leave and Sick Leave back-to-back! A Sick Leave is already applied/pending on an adjacent date.`);
-                    }
-                } else if (typeVal === "Sick Leave") {
-                    // If requesting an SL, make sure the adjacent days do not have an applied CL
-                    if (existingCLDates.includes(dayBeforeStr) || existingCLDates.includes(dayAfterStr)) {
-                        return alert(`❌ Access Denied: Policy rules prohibit combining Sick Leave and Casual Leave back-to-back! A Casual Leave is already applied/pending on an adjacent date.`);
-                    }
-                }
-            }
-            // =================================================================
-
-            // 🔒 POLICY IMPLEMENTATION: RESTRICTED HOLIDAYS 1-MONTH GATEWAY
-            const restrictedHolidays = [
-                "2026-01-06", "2026-01-14", "2026-02-02", "2026-02-19", "2026-03-13", 
-                "2026-03-14", "2026-03-30", "2026-03-31", "2026-04-10", "2026-04-13", 
-                "2026-04-14", "2026-04-20", "2026-05-09", "2026-05-12", "2026-06-07", 
-                "2026-06-27", "2026-07-10", "2026-08-09", "2026-08-16", "2026-09-05", 
-                "2026-09-28", "2026-09-30", "2026-10-01", "2026-10-07", "2026-10-10", 
-                "2026-10-22", "2026-10-23", "2026-10-28", "2026-11-05", "2026-11-24", 
-                "2026-12-24", "2026-12-31"
-            ];
-
-            let containsRestrictedHoliday = selectedDatesArray.some(d => restrictedHolidays.includes(d));
-            if (containsRestrictedHoliday) {
-                const today = new Date();
-                const earliestTarget = new Date(selectedDatesArray[0].replace(/-/g, '/'));
-                const daysAhead = Math.ceil((earliestTarget.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                if (daysAhead < 30) {
-                    return alert("⚠️ Policy Notice: Restricted Holidays require a 1-month advance notice! One of your selected dates hits an RH with less than 30 days notice, so select Casual or Sick Leave instead as per policy.");
-                }
-            }
-
-            // 🔒 POLICY IMPLEMENTATION: STREAK AUDITS FOR SIMULTANEOUS CLUSTERS
-            let maxInternalConsecutiveRun = 1;
-            let currentRun = 1;
+            let maxInternalConsecutiveRun = 1; let currentRun = 1;
             for (let i = 1; i < selectedDatesArray.length; i++) {
                 const prev = new Date(selectedDatesArray[i-1].replace(/-/g, '/'));
                 const curr = new Date(selectedDatesArray[i].replace(/-/g, '/'));
                 const gap = Math.ceil((curr - prev) / (1000 * 60 * 60 * 24));
-                
-                if (gap === 1) {
-                    currentRun++;
-                } else {
+                if (gap === 1) currentRun++;
+                else {
                     if (currentRun > maxInternalConsecutiveRun) maxInternalConsecutiveRun = currentRun;
                     currentRun = 1;
                 }
             }
             if (currentRun > maxInternalConsecutiveRun) maxInternalConsecutiveRun = currentRun;
 
-            if (typeVal === "Casual Leave" && maxInternalConsecutiveRun > 5) {
-                return alert("❌ Access Denied: A maximum of 5 days of Casual Leave may be availed consecutively!");
-            }
+            if (typeVal === "Casual Leave" && maxInternalConsecutiveRun > 5) { return alert("❌ Access Denied: A maximum of 5 days of Casual Leave may be availed consecutively!"); }
             if (typeVal === "Sick Leave" && maxInternalConsecutiveRun >= 3) {
-                const proceedWithSL = confirm("⚠️ Policy Notice: Sick leave claims of 3 or more consecutive days must be supported with a valid Medical Certificate! Do you possess a valid certificate to present to administration?");
+                const proceedWithSL = confirm("⚠️ Policy Notice: Sick leave claims of 3 or more consecutive days must be supported with a valid Medical Certificate!");
                 if (!proceedWithSL) return;
             }
 
-            // 🔒 BLACKOUT PUBLIC / NATIONAL / GAZETTED HOLIDAYS
-            const publicHolidays = [
-                "2026-01-01", "2026-01-14", "2026-01-26", "2026-03-03", 
-                "2026-03-19", "2026-05-01", "2026-08-15", "2026-08-27", 
-                "2026-10-02", "2026-10-20", "2026-12-25"
-            ];
-
-            for (let d of selectedDatesArray) {
-                if (publicHolidays.includes(d)) {
-                    return alert(`❌ Leave requests cannot be submitted for Public Holidays (${formatDateString(d)})! The academy is already closed.`);
-                }
+            // =========================================================================
+            // 🍏 WI-FI PROTECTION: DISABLE BUTTON TO PREVENT ACCIDENT DOUBLE-SUBMISSION
+            // =========================================================================
+            const submitBtn = document.querySelector('#submitBtnCol button');
+            let originalBtnText = "Submit Request";
+            if (submitBtn) {
+                originalBtnText = submitBtn.innerText;
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Submitting Request...";
+                submitBtn.style.opacity = "0.6";
+                submitBtn.style.cursor = "not-allowed";
             }
 
-            // Build dynamic display classification log layout string
-            let displayClassificationText = typeVal;
-            if (typeVal === "Sick Leave") {
-                let breakdowns = [];
-                selectedDatesArray.forEach((dStr, idx) => {
-                    const weight = document.querySelector(`input[name="duration_${idx}"]:checked`).value;
-                    breakdowns.push(`${dStr}(${weight === "2" ? "Full" : "Half"})`);
-                });
-                displayClassificationText = `Sick Leave: ${breakdowns.join(", ")}`;
-            }
-            
-            const joinedDatesString = selectedDatesArray.join(", ");
+            // =========================================================================
+            // 🍏 WI-FI PROTECTION: ABORT TIMEOUT ENGINE (15 SECONDS)
+            // =========================================================================
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15000ms = 15 seconds
 
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    signal: controller.signal, // Connects the timeout abort controller wire
                     body: JSON.stringify({
-                        action: 'requestLeave',
-                        facultyId: userData.facultyId,
-                        name: userData.name,
-                        dates: joinedDatesString, 
-                        leaveType: displayClassificationText, 
-                        calculatedDays: totalTokensRequested 
+                        action: 'requestLeave', facultyId: userData.facultyId, name: userData.name,
+                        dates: selectedDatesArray.join(", "), leaveType: typeVal, calculatedDays: totalTokensRequested 
                     })
                 });
+                
+                // Clear the timeout safety counter immediately since the server responded in time
+                clearTimeout(timeoutId);
+                
                 const result = await response.text();
                 if(result === "LEAVE_REQUESTED") {
                     alert(`✅ Successfully submitted a request for ${totalTokensRequested} token(s)!`);
-                    fpInstance.clear();
-                    document.getElementById('dynamicDateConfigurator').classList.add('hidden');
+                    if (fpInstance) fpInstance.clear();
                     document.getElementById('tokenCalculationFeedback').innerText = "";
-                    fetchUserLeaveHistory(); 
-                    fetchUpdatedLeaveNumbers();
+                    
+                    // Sync backend data logs back down onto the web layouts
+                    await fetchUserLeaveHistory(); 
+                    await fetchUpdatedLeaveNumbers();
+                } else {
+                    alert("❌ Server rejected processing request: " + result);
                 }
-            } catch (e) { alert("Submission failed."); }
+            } catch (e) { 
+                clearTimeout(timeoutId); // Make sure the timer turns off on failures
+                console.error("Submission error stream details:", e);
+                
+                // Check if the catch block triggered because the AbortController terminated the request
+                if (e.name === 'AbortError') {
+                    alert("⚠️ Network Timeout: Your Wi-Fi connection appears weak or unstable. The server took too long to respond. Please check your internet signal and try again!");
+                } else {
+                    alert("❌ Submission failed due to a network connection error. Please check your internet and try again.");
+                }
+            } finally {
+                // =========================================================================
+                // 🍏 RESET ENGINE: RE-ENABLE BUTTON AFTER ALL PROCESSING STREAMS TERMINATE
+                // =========================================================================
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.style.opacity = "1";
+                    submitBtn.style.cursor = "pointer";
+                }
+            }
         }
 
         async function logTime(type) {
@@ -621,8 +504,7 @@
                 const ipData = await ipResponse.json();
                 const payload = { action: 'logAttendance', facultyId: userData.facultyId, name: userData.name, role: userData.dept, type: type, clientIP: ipData.ip };
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await response.text();
-                alert(result === "SUCCESS" ? `✅ Recorded: ${type}` : "❌ Access Denied.");
+                alert(await response.text() === "SUCCESS" ? `✅ Recorded: ${type}` : "❌ Access Denied.");
             } catch (e) { alert("Connection error."); }
         }
 

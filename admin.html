@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #000000; font-family: 'Lexend', sans-serif; color: #ffffff; }
+        body { background-color: #000000; font-family: 'Lexend', sans-serif; color: #ffffff; padding-bottom: 50px; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
         .prof-pic { width: 60px; height: 60px; background: #ffcc00; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-right: 15px; }
         .faculty-info h2 { margin-bottom: 0; font-weight: 700; color: #ffcc00; }
@@ -16,7 +16,7 @@
         .dashboard-section { background: #111111; border: 1px solid #222; border-radius: 24px; padding: 30px; margin-bottom: 30px; }
         
         .nav-tabs { border-bottom: 2px solid #222; margin-bottom: 25px; }
-        .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; }
+        .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; text-decoration: none; cursor: pointer; }
         .nav-link:hover { color: #ffcc00; }
         .nav-link.active { background: transparent !important; color: #ffcc00 !important; border-bottom: 3px solid #ffcc00 !important; }
 
@@ -36,9 +36,38 @@
         .directory-table { width: 100%; color: #fff; border-collapse: collapse; }
         .directory-table th { border-bottom: 2px solid #222; padding: 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
         .directory-table th:first-child, .directory-table th:nth-child(2), .directory-table th:nth-child(3) { text-align: left; }
-        .directory-table td { padding: 14px 12px; border-bottom: 1px solid #222; font-size: 0.95rem; vertical-align: middle; }
+        .directory-table td { padding: 14px 12px; border-bottom: 1px solid #222; font-size: 0.95rem; vertical-align: middle; text-align: center; }
+        .directory-table td:first-child, .directory-table td:nth-child(2), .directory-table td:nth-child(3) { text-align: left; }
         .directory-table tr:hover { background: #161616; }
         .text-pending-count { color: #ffcc00; font-weight: bold; }
+
+        /* Leave Analytics GUI Enhancement Specifications */
+        .analytics-card { background: #0d0d0d; border: 1px solid #222; border-radius: 20px; padding: 25px; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); height: 100%; cursor: pointer; }
+        .analytics-card:hover { border-color: #ffcc00; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 204, 0, 0.05); }
+        .analytics-progress-track { background: #222; height: 8px; border-radius: 10px; overflow: hidden; margin-top: 6px; position: relative; }
+        .analytics-progress-bar { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
+        .analytics-metric-subtext { font-size: 0.72rem; font-weight: bold; text-transform: uppercase; color: #777; letter-spacing: 0.5px; }
+        .analytics-micro-badge { font-size: 0.68rem; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
+        .form-control { border-radius: 8px !important; }
+
+        /* 🗓️ CUSTOM MODAL CALENDAR WORKSPACE STYLING (Matches Faculty Dashboard UI) */
+        .modal-blur-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1050; }
+        .calendar-modal-box { background: #111111; border: 1px solid #333; border-radius: 24px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 30px; }
+        
+        .gui-calendar-weekdays-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 15px; }
+        .gui-calendar-days-surface-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 20px; column-gap: 10px; justify-items: center; }
+        .gui-calendar-day-node { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; color: #444444; border-radius: 50%; position: relative; cursor: pointer; transition: 0.2s; background: transparent; }
+        .gui-calendar-day-node:hover { background: #222222; transform: scale(1.08); }
+        .gui-calendar-day-node.active-month-day { color: #888888; } 
+
+        .gui-calendar-day-node.status-bg-approved { background: rgba(25, 135, 84, 0.2) !important; color: #ffffff !important; border: 2px solid #198754; }
+        .gui-calendar-day-node.status-bg-pending { background: rgba(255, 193, 7, 0.15) !important; color: #ffffff !important; border: 2px solid #ffc107; }
+        .gui-calendar-day-node.status-bg-rejected { background: rgba(220, 53, 69, 0.2) !important; color: #ffffff !important; border: 2px solid #dc3545; }
+
+        .gui-calendar-badge-character { position: absolute; bottom: 2px; font-size: 0.65rem; font-weight: 900; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; }
+        .badge-char-approved { background: #198754; color: #fff; }
+        .badge-char-pending { background: #ffc107; color: #000; }
+        .badge-char-rejected { background: #dc3545; color: #fff; }
     </style>
 </head>
 <body class="container">
@@ -58,16 +87,23 @@
     </div>
 
     <ul class="nav nav-tabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="tabRequests" href="#" onclick="switchView('Requests')">Requests Queue</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="tabHistory" href="#" onclick="switchView('History')">Processed History</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="tabDirectory" href="#" onclick="switchView('Directory')">Faculty Directory</a>
-        </li>
+        <li class="nav-item"><a class="nav-link active" id="tabRequestQueue" href="#" onclick="switchAdminView('Queue')">Request Queue</a></li>
+        <li class="nav-item"><a class="nav-link" id="tabProcessedHistory" href="#" onclick="switchAdminView('Processed')">Processed History</a></li>
+        <li class="nav-item"><a class="nav-link" id="tabFacultyDirectory" href="#" onclick="switchAdminView('Directory')">Faculty Directory</a></li>
+        <li class="nav-item"><a class="nav-link" id="tabLeaveAnalytics" href="#" onclick="switchAdminView('Analytics')">Leave Analytics</a></li>
     </ul>
+
+    <div id="viewLeaveAnalytics" class="hidden mt-4">
+        <div class="dashboard-section">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2">
+                <h3 class="text-warning fw-bold m-0" style="font-family: 'Lexend', sans-serif;">Faculty Leave Analytics Hub</h3>
+                <span class="badge bg-dark border border-secondary text-secondary px-3 py-2 fw-bold">Live Status Monitor</span>
+            </div>
+            
+            <div class="row g-4" id="analyticsCardsContainerGridSurface">
+                </div>
+        </div>
+    </div>
 
     <div id="sectionRequests" class="dashboard-section">
         <h4 style="color: #ffcc00; font-weight: 700; margin-bottom: 20px;">Pending Action Queue</h4>
@@ -94,41 +130,67 @@
                         <th class="text-info text-center">Total SL</th>
                         <th class="text-info text-center">Used SL</th>
                         <th class="text-info text-center">Pending SL</th>
+                        <th class="text-danger text-center">Current LOP</th>
                         <th class="text-center" style="color: #ffcc00;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="directoryTableBody">
-                    <tr><td colspan="9" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>
+                    <tr><td colspan="11" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div id="calendarInspectionModal" class="modal-blur-overlay hidden">
+        <div class="calendar-modal-box">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 id="modalFacultyTitleName" class="text-warning fw-bold m-0">Faculty Tracker</h4>
+                <button class="btn btn-sm btn-outline-danger fw-bold rounded-3" onclick="closeCalendarModal()">Close ✕</button>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-dark p-2 rounded-3">
+                <button class="btn btn-secondary btn-sm fw-bold" onclick="shiftInspectorMonth(-1)">◀ Prev</button>
+                <h5 id="inspectorMonthHeaderTitle" class="text-white fw-bold m-0 text-capitalize">Month Year</h5>
+                <button class="btn btn-secondary btn-sm fw-bold" onclick="shiftInspectorMonth(1)">Next ▶</button>
+            </div>
+
+            <div class="gui-calendar-weekdays-grid-header">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            </div>
+            
+            <div id="inspectorCalendarDaysSurface" class="gui-calendar-days-surface-grid mb-4"></div>
+
+            <div id="inspectorDetailDrawer" class="hidden text-start p-3 rounded-4" style="background: #000000; border: 1px solid #333;">
+                <h6 id="inspectorTargetDateText" class="text-warning fw-bold mb-2">Selected Date Details</h6>
+                <div id="inspectorContentPayload" class="text-white small">No entry logs reported.</div>
+            </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
         const userData = JSON.parse(localStorage.getItem('facultyUser'));
+        let globalFacultyPool = []; 
 
-        // 🔄 UPGRADED MULTI-DATE COMPLIANT FORMATTER FOR ADMIN VIEWS
+        // State parameters for tracking popups
+        let activeInspectedFacultyId = null;
+        let inspectorSelectedActiveDate = new Date();
+        let cachedInspectedLeavesArray = [];
+
         function formatDateString(rawDate) {
             if (!rawDate) return "";
             let str = rawDate.toString().trim();
-            
             if (str.includes(',')) {
                 return str.split(',').map(datePart => {
                     let cleanPart = datePart.trim().split('T')[0].split(' ')[0];
                     const parts = cleanPart.split('-');
-                    if (parts.length === 3 && parts[0].length === 4) {
-                        return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; 
-                    }
+                    if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
                     return cleanPart;
                 }).join(', '); 
             }
-            
             let dateStr = str.split('T')[0].split(' ')[0];
             const parts = dateStr.split('-'); 
-            if (parts.length === 3 && parts[0].length === 4) {
-                return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
-            }
+            if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
             return dateStr;
         }
 
@@ -142,35 +204,52 @@
             loadAdminDatabaseStreams();
         }
 
-        function switchView(targetTab) {
+        function switchAdminView(targetTabName) {
             document.getElementById('sectionRequests').classList.add('hidden');
             document.getElementById('sectionHistory').classList.add('hidden');
             document.getElementById('sectionDirectory').classList.add('hidden');
+            document.getElementById('viewLeaveAnalytics').classList.add('hidden');
             
-            document.getElementById('tabRequests').classList.remove('active');
-            document.getElementById('tabHistory').classList.remove('active');
-            document.getElementById('tabDirectory').classList.remove('active');
+            document.getElementById('tabRequestQueue').classList.remove('active');
+            document.getElementById('tabProcessedHistory').classList.remove('active');
+            document.getElementById('tabFacultyDirectory').classList.remove('active');
+            document.getElementById('tabLeaveAnalytics').classList.remove('active');
 
-            if (targetTab === 'Requests') {
-                document.getElementById('tabRequests').classList.add('active');
+            if (targetTabName === 'Queue') {
+                document.getElementById('tabRequestQueue').classList.add('active');
                 document.getElementById('sectionRequests').classList.remove('hidden');
-            } else if (targetTab === 'History') {
-                document.getElementById('tabHistory').classList.add('active');
+                loadAdminDatabaseStreams();
+            } else if (targetTabName === 'Processed') {
+                document.getElementById('tabProcessedHistory').classList.add('active');
                 document.getElementById('sectionHistory').classList.remove('hidden');
-            } else if (targetTab === 'Directory') {
-                document.getElementById('tabDirectory').classList.add('active');
+                loadAdminDatabaseStreams();
+            } else if (targetTabName === 'Directory') {
+                document.getElementById('tabFacultyDirectory').classList.add('active');
                 document.getElementById('sectionDirectory').classList.remove('hidden');
                 loadFacultyDirectoryStream(); 
+            } else if (targetTabName === 'Analytics') {
+                document.getElementById('tabLeaveAnalytics').classList.add('active');
+                document.getElementById('viewLeaveAnalytics').classList.remove('hidden');
+                generateFacultyLeaveAnalyticsGraphics(); 
             }
         }
 
         async function loadAdminDatabaseStreams() {
             try {
+                const facultyResponse = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchFacultyPool', adminRole: userData.role })
+                });
+                globalFacultyPool = await facultyResponse.json();
+
                 const response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role }) 
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role, caller: 'AdminDashboard' }) 
                 });
-                const allRows = await response.json();
+                const resData = await response.json();
+                
+                // 🍏 Unpack structure safely if an object wrapper is present, otherwise fallback to array
+                const allRows = resData.leaves ? resData.leaves : (Array.isArray(resData) ? resData : []);
                 
                 const queueContainer = document.getElementById('adminQueueContainer');
                 const historyContainer = document.getElementById('adminHistoryContainer');
@@ -185,16 +264,50 @@
                     queueContainer.innerHTML = `<p class="text-muted text-center py-3">🎉 All clear! No new leave applications waiting.</p>`;
                 } else {
                     pending.forEach(req => {
+                        const facProfile = globalFacultyPool.find(f => f.facultyId.toString().toUpperCase().trim() === req.facultyId.toString().toUpperCase().trim());
+                        
+                        let availableTokens = 0;
+                        let shorthand = "";
+                        if (req.leaveType.toUpperCase().includes("CASUAL")) {
+                            availableTokens = facProfile ? Number(facProfile.clPending) : 0;
+                            shorthand = "CL";
+                        } else {
+                            availableTokens = facProfile ? Number(facProfile.slPending) : 0;
+                            shorthand = "SL";
+                        }
+
+                        const datesArray = req.dates.split(',').map(d => d.trim());
+                        let dynamicDatesDropdownsHTML = "";
+
+                        datesArray.forEach((dateString, idx) => {
+                            let defaultToLOP = idx >= availableTokens;
+
+                            dynamicDatesDropdownsHTML += `
+                                <div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded" style="background: #111; border: 1px solid #222; max-width: 380px;">
+                                    <span class="small fw-bold text-light" style="font-size:0.85rem;">${formatDateString(dateString)}</span>
+                                    <select class="form-select form-select-sm date-classifier-${req.requestId}" data-date="${dateString}" style="width: 130px; background: #000; color: #ffcc00; border: 1px solid #ffcc00; border-radius: 8px; font-size: 0.75rem; font-weight: bold; padding: 4px 8px;">
+                                        <option value="${shorthand}" ${!defaultToLOP ? 'selected' : ''}>${shorthand} Token</option>
+                                        <option value="LOP" ${defaultToLOP ? 'selected' : ''}>LOP (Unpaid)</option>
+                                    </select>
+                               </div>`;
+                        });
+
                         queueContainer.innerHTML += `
-                            <div class="request-card">
-                                <div class="request-details">
-                                    <h5>${req.name} (ID: ${req.facultyId})</h5>
-                                    <p>Target Date: <b>${formatDateString(req.dates)}</b> | Classification: <b class="text-warning">${req.leaveType}</b></p>
-                                    <p class="small text-secondary">Token: ${req.requestId}</p>
+                            <div class="request-card flex-column align-items-stretch gap-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="request-details">
+                                        <h5>${req.name} (ID: ${req.facultyId})</h5>
+                                        <p>Requested: <b class="text-warning">${req.leaveType}</b></p>
+                                        <p class="small text-secondary mt-1">Token Reference Key: <code>${req.requestId}</code></p>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-action-success me-2" onclick="executeDecision('${req.requestId}', 'Approved')">Approve</button>
+                                        <button class="btn btn-action-danger" onclick="executeDecision('${req.requestId}', 'Rejected')">Reject</button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <button class="btn btn-action-success me-2" onclick="executeDecision('${req.requestId}', 'Approved')">Approve</button>
-                                    <button class="btn btn-action-danger" onclick="executeDecision('${req.requestId}', 'Rejected')">Reject</button>
+                                <div class="border-top border-secondary pt-2">
+                                    <label class="form-label text-warning small fw-bold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Date Classification Breakdown:</label>
+                                    ${dynamicDatesDropdownsHTML}
                                 </div>
                             </div>`;
                     });
@@ -221,49 +334,46 @@
         // 📊 EDITED: INLINE EDITABLE MULTI-COLUMN STREAM RENDERING ENGINE FOR ROSTER VIEWS
         async function loadFacultyDirectoryStream() {
             const tableBody = document.getElementById('directoryTableBody');
+            tableBody.innerHTML = `<tr><td colspan="11" class="text-muted text-center py-4">Fetching roster data streams...</td></tr>`;
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'fetchFacultyPool', adminRole: userData.role })
                 });
-                const profiles = await response.json();
+                globalFacultyPool = await response.json();
                 tableBody.innerHTML = '';
 
-                if (!profiles || profiles.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="10" class="text-muted text-center py-3">No instructor data files found.</td></tr>`;
+                if (!globalFacultyPool || globalFacultyPool.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="11" class="text-muted text-center py-3">No instructor data files found.</td></tr>`;
                     return;
                 }
 
-                profiles.forEach((fac, index) => {
+                globalFacultyPool.forEach((fac, index) => {
                     tableBody.innerHTML += `
                         <tr id="row_${fac.facultyId}">
                             <td><code>${fac.facultyId}</code></td>
                             <td><b>${fac.name}</b></td>
-                            <td><span class="text-secondary">${fac.role} Instructor</span></td>
+                            <td><span class="text-secondary">${fac.role || 'Guitar'} Instructor</span></td>
                             
-                            <!-- 🟨 Editable Casual Leave Balance Matrix Inputs -->
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:70px; height:35px;" id="clTotal_${index}" value="${fac.clTotal}" oninput="handleBalanceMath(${index}, 'cl', 'total')"></td>
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:70px; height:35px;" id="clUsed_${index}" value="${fac.clUsed}" oninput="handleBalanceMath(${index}, 'cl', 'used')"></td>
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-pending-count border-secondary" style="width:70px; height:35px;" id="clPending_${index}" value="${fac.clPending}" oninput="handleBalanceMath(${index}, 'cl', 'pending')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:65px; height:35px;" id="clTotal_${index}" value="${fac.clTotal}" oninput="handleBalanceMath(${index}, 'cl', 'total')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:65px; height:35px;" id="clUsed_${index}" value="${fac.clUsed}" oninput="handleBalanceMath(${index}, 'cl', 'used')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-pending-count border-secondary" style="width:65px; height:35px;" id="clPending_${index}" value="${fac.clPending}" oninput="handleBalanceMath(${index}, 'cl', 'pending')"></td>
                             
-                            <!-- 🟦 Editable Sick Leave Balance Matrix Inputs -->
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:70px; height:35px;" id="slTotal_${index}" value="${fac.slTotal}" oninput="handleBalanceMath(${index}, 'sl', 'total')"></td>
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:70px; height:35px;" id="slUsed_${index}" value="${fac.slUsed}" oninput="handleBalanceMath(${index}, 'sl', 'used')"></td>
-                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-info border-secondary fw-bold" style="width:70px; height:35px;" id="slPending_${index}" value="${fac.slPending}" oninput="handleBalanceMath(${index}, 'sl', 'pending')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-white border-secondary" style="width:65px; height:35px;" id="slTotal_${index}" value="${fac.slTotal}" oninput="handleBalanceMath(${index}, 'sl', 'total')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-danger border-secondary fw-bold" style="width:65px; height:35px;" id="slUsed_${index}" value="${fac.slUsed}" oninput="handleBalanceMath(${index}, 'sl', 'used')"></td>
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-info border-secondary fw-bold" style="width:65px; height:35px;" id="slPending_${index}" value="${fac.slPending}" oninput="handleBalanceMath(${index}, 'sl', 'pending')"></td>
                             
-                            <!-- 💾 Action Save Button Block Element -->
+                            <td><input type="number" class="form-control text-center mx-auto bg-dark text-warning border-secondary fw-bold" style="width:65px; height:35px;" id="currentLOP_${index}" value="${fac.currentLOP || 0}"></td>
+
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-warning fw-bold py-1 px-3" onclick="saveInlineFacultyMetrics('${fac.facultyId}', ${index})">Save</button>
+                                <!-- 🍏 Calendar button removed from here to centralize views inside Analytics Tab -->
+                                <button class="btn btn-sm btn-warning fw-bold py-1 px-3" onclick="saveInlineFacultyMetrics('${fac.facultyId}', ${index})">Save</button>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 });
-            } catch (err) {
-                tableBody.innerHTML = `<tr><td colspan="10" class="text-danger text-center py-3">Error syncing metrics database.</td></tr>`;
-            }
+            } catch (err) { tableBody.innerHTML = `<tr><td colspan="11" class="text-danger text-center py-3">Error syncing metrics database.</td></tr>`; }
         }
 
-        // 🧮 AUTOMATED AUTO-CALCULATION BALANCE ENGINE FOR DIRECTORY ROWS
         function handleBalanceMath(index, type, fieldChanged) {
             const totalInput = document.getElementById(`${type}Total_${index}`);
             const usedInput = document.getElementById(`${type}Used_${index}`);
@@ -274,68 +384,342 @@
             let pending = Number(pendingInput.value) || 0;
 
             if (fieldChanged === 'pending') {
-                // If pending changes, update Used: Used = Total - Pending
                 used = total - pending;
                 if (used < 0) used = 0;
                 usedInput.value = used;
-            } 
-            else if (fieldChanged === 'used') {
-                // If used changes, update Pending: Pending = Total - Used
+            } else if (fieldChanged === 'used') {
                 pending = total - used;
                 if (pending < 0) pending = 0;
                 pendingInput.value = pending;
-            } 
-            else if (fieldChanged === 'total') {
-                // If total changes, reset Used to 0 and match Pending to Total
-                used = 0;
+            } else if (fieldChanged === 'total') {
                 pending = total;
                 usedInput.value = 0;
                 pendingInput.value = pending;
             }
         }
 
-        // 🚀 TRANSMIT UPDATED VALUES TO GOOGLE SPREADSHEET CELL COORDINATES
         async function saveInlineFacultyMetrics(facultyId, index) {
             const payload = {
-                action: 'updateFacultyBalancesInline',
-                adminRole: userData.role,
-                facultyId: facultyId,
+                action: 'updateFacultyBalancesInline', adminRole: userData.role, facultyId: facultyId,
                 clTotal: Number(document.getElementById(`clTotal_${index}`).value) || 0,
                 clUsed: Number(document.getElementById(`clUsed_${index}`).value) || 0,
                 clPending: Number(document.getElementById(`clPending_${index}`).value) || 0,
                 slTotal: Number(document.getElementById(`slTotal_${index}`).value) || 0,
                 slUsed: Number(document.getElementById(`slUsed_${index}`).value) || 0,
-                slPending: Number(document.getElementById(`slPending_${index}`).value) || 0
+                slPending: Number(document.getElementById(`slPending_${index}`).value) || 0,
+                currentLOP: Number(document.getElementById(`currentLOP_${index}`).value) || 0 
             };
-
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.text();
-                if (result === "INLINE_BALANCES_UPDATED") {
-                    alert(`✅ Successfully updated balances for Faculty ID: ${facultyId}`);
-                } else {
-                    alert(`❌ Save Failed: ${result}`);
-                }
-            } catch (err) {
-                alert("Connection error occurred while saving row properties.");
-            }
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                if (await response.text() === "INLINE_BALANCES_UPDATED") { alert(`✅ Successfully updated balances for Faculty ID: ${facultyId}`); }
+            } catch (err) { alert("Connection error occurred while saving row properties."); }
         }
 
         async function executeDecision(reqId, decision) {
+            let clDeductionTotal = 0; let slDeductionTotal = 0; let lopAccumulationTotal = 0;
+            let finalLoggedBreakdownArray = [];
+
+            if (decision === 'Approved') {
+                document.querySelectorAll(`.date-classifier-${reqId}`).forEach(dropdown => {
+                    const dateVal = dropdown.getAttribute('data-date');
+                    const choice = dropdown.value;
+                    if (choice === 'CL') { clDeductionTotal++; finalLoggedBreakdownArray.push(`${dateVal}(CL)`); }
+                    else if (choice === 'SL') { slDeductionTotal++; finalLoggedBreakdownArray.push(`${dateVal}(SL)`); }
+                    else if (choice === 'LOP') { lopAccumulationTotal++; finalLoggedBreakdownArray.push(`${dateVal}(LOP)`); }
+                });
+            }
+
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'reviewLeave', adminRole: userData.role, requestId: reqId, status: decision })
+                    body: JSON.stringify({ 
+                        action: 'reviewLeave', adminRole: userData.role, requestId: reqId, status: decision,
+                        clUsedDelta: clDeductionTotal, slUsedDelta: slDeductionTotal, lopUsedDelta: lopAccumulationTotal,
+                        customBreakdownText: finalLoggedBreakdownArray.join(", ")
+                    })
                 });
-                const result = await response.text();
-                if (result === "STATUS_UPDATED") {
-                    alert(`Success: Action recorded.`);
-                    loadAdminDatabaseStreams();
-                }
+                if (await response.text() === "STATUS_UPDATED") { alert(`Success: Action recorded.`); loadAdminDatabaseStreams(); }
             } catch(e) { alert("Error connecting to database."); }
+        }
+
+        async function generateFacultyLeaveAnalyticsGraphics() {
+            const gridContainer = document.getElementById('analyticsCardsContainerGridSurface');
+            gridContainer.innerHTML = `<div class="col-12 text-muted text-center py-4">Syncing graphical assets...</div>`;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'fetchFacultyPool', adminRole: userData.role }) });
+                globalFacultyPool = await response.json();
+                gridContainer.innerHTML = "";
+
+                if (globalFacultyPool.length === 0) {
+                    gridContainer.innerHTML = `<div class="col-12 text-muted text-center py-4">No active faculty profile rosters detected to summarize.</div>`;
+                    return;
+                }
+
+                globalFacultyPool.forEach(faculty => {
+                    let totalCL = Number(faculty.clTotal) || 0;
+                    let usedCL = Number(faculty.clUsed) || 0;
+                    let pendingCL = Number(faculty.clPending) || 0;
+                    let totalSL = Number(faculty.slTotal) || 0;
+                    let usedSL = Number(faculty.slUsed) || 0;
+                    let pendingSL = Number(faculty.slPending) || 0;
+                    let currentLOP = Number(faculty.currentLOP) || 0;
+
+                    let clPercentage = totalCL > 0 ? Math.min((usedCL / totalCL) * 100, 100) : 0;
+                    let slPercentage = totalSL > 0 ? Math.min((usedSL / totalSL) * 100, 100) : 0;
+
+                    const cardColNode = document.createElement('div');
+                    cardColNode.className = "col-xl-4 col-md-6";
+                    // 🍏 ADDED click listener to pop open their interactive timeline calendar instantly
+                    cardColNode.innerHTML = `
+                        <div class="analytics-card" onclick="openCalendarModal('${faculty.facultyId}', '${faculty.name}')">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="text-white fw-bold m-0" style="font-size:1.15rem;">${faculty.name}</h4>
+                                    <span class="text-muted small" style="font-size: 0.75rem;">ID: <code>${faculty.facultyId}</code> | ${faculty.role || 'Guitar'} Instructor</span>
+                                </div>
+                                ${currentLOP > 0 ? `<span class="analytics-micro-badge bg-danger text-white">${currentLOP} LOP Taken</span>` : `<span class="analytics-micro-badge bg-secondary text-white-50">0 Deductions</span>`}
+                            </div>
+
+                            <div class="mb-3 mt-4">
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <span class="analytics-metric-subtext">Casual Leave Consumption</span>
+                                    <span class="small fw-bold text-warning">${usedCL} / ${totalCL} Used</span>
+                                </div>
+                                <div class="analytics-progress-track">
+                                    <div class="analytics-progress-bar bg-warning" style="width: ${clPercentage}%;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1 text-secondary" style="font-size:0.65rem;">
+                                    <span>${pendingCL} Pending Balance</span>
+                                    <span>${totalCL - usedCL} Available</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <span class="analytics-metric-subtext">Sick Leave Consumption</span>
+                                    <span class="small fw-bold text-info">${usedSL} / ${totalSL} Used</span>
+                                </div>
+                                <div class="analytics-progress-track">
+                                    <div class="analytics-progress-bar bg-info" style="width: ${slPercentage}%;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1 text-secondary" style="font-size:0.65rem;">
+                                    <span>${pendingSL} Pending Balance</span>
+                                    <span>${totalSL - usedSL} Available</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    gridContainer.appendChild(cardColNode);
+                });
+            } catch (err) { gridContainer.innerHTML = `<div class="col-12 text-danger text-center py-4">Error generating graphics workspace.</div>`; }
+        }
+
+        // =================================================================
+        // 🗓️ UPDATED POPUP WORKSPACE CONTROLLERS: ACTIVE CALENDAR ENGINE FOR ADMIN
+        // =================================================================
+        // Global variables to store both arrays returned from database payload
+        let globalInspectedBalanceHistoryLog = [];
+
+        async function openCalendarModal(facultyId, facultyName) {
+            activeInspectedFacultyId = facultyId;
+            document.getElementById('modalFacultyTitleName').innerText = `${facultyName} (${facultyId})`;
+            document.getElementById('inspectorDetailDrawer').classList.add('hidden');
+            document.getElementById('calendarInspectionModal').classList.remove('hidden');
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: facultyId, role: 'FacultyDashboard', caller: 'FacultyDashboard' })
+                });
+                const resData = await response.json();
+                
+                // 🍏 Unpack the two arrays cleanly from the single payload response
+                cachedInspectedLeavesArray = resData.leaves ? resData.leaves : [];
+                globalInspectedBalanceHistoryLog = resData.balanceHistory ? resData.balanceHistory : [];
+                
+                generateInspectorCalendarDOMSurfaces(); 
+            } catch (err) { console.error("Error reading instructor logs:", err); }
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('calendarInspectionModal').classList.add('hidden');
+            activeInspectedFacultyId = null;
+        }
+
+        function shiftInspectorMonth(directionAmount) {
+            inspectorSelectedActiveDate.setMonth(inspectorSelectedActiveDate.getMonth() + directionAmount);
+            generateInspectorCalendarDOMSurfaces();
+        }
+
+        // 🍏 COMPLETELY REWRITTEN ADMIN COMPLIANT INSPECTION SURFACE RENDERER
+        function generateInspectorCalendarDOMSurfaces() {
+            const container = document.getElementById('inspectorCalendarDaysSurface');
+            const headerTitle = document.getElementById('inspectorMonthHeaderTitle');
+            container.innerHTML = "";
+
+            // Background click listener to clear details if admin clicks on empty gaps/margins
+            container.onclick = (event) => {
+                if (event.target === event.currentTarget) {
+                    const drawer = document.getElementById('inspectorDetailDrawer');
+                    if (drawer) drawer.classList.add('hidden');
+                }
+            };
+
+            const targetYear = inspectorSelectedActiveDate.getFullYear();
+            const targetMonth = inspectorSelectedActiveDate.getMonth();
+            headerTitle.innerText = `${inspectorSelectedActiveDate.toLocaleString('default', { month: 'long' })} ${targetYear}`;
+
+            const firstDayIndexOffset = new Date(targetYear, targetMonth, 1).getDay();
+            const totalDaysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndexOffset; i++) {
+                const spacer = document.createElement('div');
+                spacer.className = "gui-calendar-day-node";
+                container.appendChild(spacer);
+            }
+
+            for (let dayNumber = 1; dayNumber <= totalDaysInMonth; dayNumber++) {
+                const dayNodeElement = document.createElement('div');
+                dayNodeElement.className = "gui-calendar-day-node active-month-day";
+                dayNodeElement.innerText = dayNumber;
+
+                const currentIterationDateString = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+
+                const historicalRecordsFound = cachedInspectedLeavesArray.filter(item => {
+                    const parsedNormalizedDatesArray = item.dates.split(',').map(d => {
+                        let cleanStr = d.trim().split('T')[0].split(' ')[0];
+                        const p = cleanStr.split('-');
+                        if (p.length === 3) {
+                            if (p[0].length === 4) return `${p[0]}-${p[1]}-${p[2]}`;
+                            return `20${p[2]}-${p[1]}-${p[0]}`;
+                        }
+                        return "";
+                    }).filter(d => d !== "");
+                    return parsedNormalizedDatesArray.includes(currentIterationDateString);
+                });
+
+                if (historicalRecordsFound.length > 0) {
+                    let topPriorityRecord = historicalRecordsFound.find(r => r.status === 'Approved') || historicalRecordsFound.find(r => r.status === 'Pending') || historicalRecordsFound[0];
+                    const statusStateKey = topPriorityRecord.status;
+                    const badgeCharacterSpan = document.createElement('span');
+                    badgeCharacterSpan.className = "gui-calendar-badge-character";
+
+                    if (statusStateKey === 'Approved') {
+                        dayNodeElement.classList.add('status-bg-approved'); badgeCharacterSpan.innerText = "A"; badgeCharacterSpan.classList.add('badge-char-approved');
+                    } else if (statusStateKey === 'Pending') {
+                        dayNodeElement.classList.add('status-bg-pending'); badgeCharacterSpan.innerText = "P"; badgeCharacterSpan.classList.add('badge-char-pending');
+                    } else if (statusStateKey === 'Rejected') {
+                        dayNodeElement.classList.add('status-bg-rejected'); badgeCharacterSpan.innerText = "R"; badgeCharacterSpan.classList.add('badge-char-rejected');
+                    }
+                    dayNodeElement.appendChild(badgeCharacterSpan);
+
+                    // Click handler for days WITH leave data
+                    dayNodeElement.onclick = (event) => {
+                        event.stopPropagation();
+                        // 🍏 Pass down the cached historical logs here
+                        executeInspectorDrawerActivation(currentIterationDateString, historicalRecordsFound, globalInspectedBalanceHistoryLog);
+                    };
+                } else {
+                    // Click handler for INACTIVE gray empty numbers
+                    dayNodeElement.onclick = (event) => {
+                        event.stopPropagation();
+                        
+                        const drawer = document.getElementById('inspectorDetailDrawer');
+                        const dateTitle = document.getElementById('inspectorTargetDateText');
+                        const contentPane = document.getElementById('inspectorContentPayload');
+                        
+                        const parts = currentIterationDateString.split('-');
+                        dateTitle.innerText = `Details for: ${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
+                        drawer.classList.remove('hidden');
+                        
+                        contentPane.innerHTML = `
+                            <div class="p-2 text-muted italic" style="border-left: 2px solid #444;">
+                                No activity reported. No leaves requested on this date.
+                            </div>`;
+                    };
+                }
+                container.appendChild(dayNodeElement);
+            }
+        }
+
+        function executeInspectorDrawerActivation(dateIsoTextString, transactionsArray, balanceHistoryArray) {
+            const drawer = document.getElementById('inspectorDetailDrawer');
+            const dateTitle = document.getElementById('inspectorTargetDateText');
+            const contentPane = document.getElementById('inspectorContentPayload');
+            const parts = dateIsoTextString.split('-');
+            
+            dateTitle.innerText = `Details for: ${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
+            drawer.classList.remove('hidden');
+
+            if (transactionsArray.length === 0) {
+                contentPane.innerHTML = `<div class="p-2 text-muted italic" style="border-left: 2px solid #444;">No leave files found for this date.</div>`;
+                return;
+            }
+            let compiledHtmlContent = "";
+            transactionsArray.forEach(req => {
+                let statusColor = req.status === 'Approved' ? "#198754" : (req.status === 'Rejected' ? "#dc3545" : "#ffc107");
+                let cleanTypeDisplay = req.leaveType.split(':')[0];
+                let simultaneousDatesHTML = "";
+
+                // 🔍 Extrapolate balance snapshots matching this request timestamp or action key
+                let snapshotMatch = (balanceHistoryArray || []).find(b => b.reference.toString().trim() === req.requestId.toString().trim());
+                let balanceHistoryHTML = "";
+                
+                if (snapshotMatch) {
+                    balanceHistoryHTML = `
+                        <div class="mt-3 p-2 rounded" style="background: #000; border: 1px solid #333; font-size: 0.75rem;">
+                            <div class="text-warning fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;">📊 Balance Snapshot at processing:</div>
+                            <div class="d-flex justify-content-between text-white-50">
+                                <span>Available CL: <b class="text-white">${snapshotMatch.clAvailable}</b></span>
+                                <span>Available SL: <b class="text-white">${snapshotMatch.slAvailable}</b></span>
+                                <span>Total Month LOP: <b class="text-danger">${snapshotMatch.lop}</b></span>
+                            </div>
+                        </div>`;
+                }
+
+                if (req.status === 'Approved' && req.leaveType.includes(':')) {
+                    let breakdownParts = req.leaveType.split(':')[1].split(',');
+                    breakdownParts.forEach(part => {
+                        let trimmed = part.trim();
+                        let datePart = trimmed.split('(')[0];
+                        let typePart = trimmed.includes('(') ? trimmed.split('(')[1].replace(')', '') : 'CL';
+                        let badgeStyle = typePart === 'LOP' ? 'color: #dc3545; border: 1px solid #dc3545;' : 'color: #ffcc00; border: 1px solid #ffcc00;';
+
+                        simultaneousDatesHTML += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background: #111; border: 1px solid #222;">
+                                <span class="small fw-bold text-white-50" style="font-size: 0.8rem;">${formatDateString(datePart)}</span>
+                                <span class="small fw-bold px-2 py-0.5 rounded" style="${badgeStyle} font-size: 0.65rem;">${typePart === 'LOP' ? 'LOP (Unpaid)' : typePart + ' Token'}</span>
+                            </div>`;
+                    });
+                } else {
+                    let datesArray = req.dates.split(',');
+                    let textLabel = req.status === 'Rejected' ? 'Rejected' : 'Pending Review';
+                    let labelBorder = req.status === 'Rejected' ? '1px solid #dc3545' : '1px solid #aaa';
+                    let labelColor = req.status === 'Rejected' ? '#dc3545' : '#aaa';
+
+                    datesArray.forEach(dStr => {
+                        simultaneousDatesHTML += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background: #111; border: 1px solid #222;">
+                                <span class="small fw-bold text-white-50" style="font-size: 0.8rem;">${formatDateString(dStr.trim())}</span>
+                                <span class="small fw-bold px-2 py-0.5 rounded" style="color: ${labelColor}; border: ${labelBorder}; font-size: 0.65rem;">${textLabel}</span>
+                            </div>`;
+                    });
+                }
+
+                compiledHtmlContent += `
+                    <div class="mb-2 p-3 rounded" style="background: #222; border-left: 3px solid ${statusColor};">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-warning">${cleanTypeDisplay}</span>
+                            <span class="fw-bold small text-uppercase" style="color: ${statusColor}; font-size: 0.75rem;">${req.status}</span>
+                        </div>
+                        <div style="border-top: 1px solid #333; padding-top: 8px;">
+                            <span class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Cluster Status Breakdown:</span>
+                            <div class="mt-2">${simultaneousDatesHTML}</div>
+                        </div>
+                        ${balanceHistoryHTML}
+                    </div>`;
+            });
+            contentPane.innerHTML = compiledHtmlContent;
         }
 
         function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }

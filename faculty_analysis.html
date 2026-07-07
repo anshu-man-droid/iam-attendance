@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM - Monthly Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000000; font-family: 'Lexend', sans-serif; color: #ffffff; padding-bottom: 50px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 0; border-bottom: 1px solid #333; margin-bottom: 40px; }
+        .prof-pic { width: 60px; height: 60px; background: #ffcc00; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-right: 15px; }
+        .faculty-info h2 { margin-bottom: 0; font-weight: 700; color: #ffcc00; }
+        .faculty-info p { color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 0; }
+        
+        .dashboard-section { background: #111111; border: 1px solid #222; border-radius: 24px; padding: 30px; margin-top: 30px; }
+        .section-title { color: #ffcc00; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .logout-btn { color: #ffcc00; font-weight: bold; text-decoration: none; }
+        .hidden { display: none !important; }
+
+        .nav-tabs { border-bottom: 2px solid #222; margin-bottom: 25px; }
+        .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; text-decoration: none; }
+        .nav-link:hover { color: #ffcc00; }
+        .nav-link.active { background: transparent !important; color: #ffcc00 !important; border-bottom: 3px solid #ffcc00 !important; }
+
+        .monthly-header { background: #161616; border: 1px solid #222; border-radius: 12px; padding: 15px 20px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .monthly-header:hover { border-color: #ffcc00; background: #1a1a1a; }
+        .monthly-panel { background: #0b0b0b; border-left: 3px solid #ffcc00; padding: 15px 20px; margin-bottom: 15px; border-radius: 0 12px 12px 0; }
+        .month-pill { font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 6px; margin-left: 5px; }
+    </style>
+</head>
+<body class="container">
+
+    <div class="header">
+        <div class="d-flex align-items-center">
+            <div class="prof-pic" id="initials">?</div>
+            <div class="faculty-info">
+                <h2 id="facName">Loading...</h2>
+                <p id="facRole">Faculty View</p>
+            </div>
+        </div>
+        <div>
+            <a href="bridge.html" id="backToGatewayBtn" class="logout-btn me-4 hidden">BACK TO GATEWAY</a>
+            <a href="#" class="logout-btn" onclick="logout()">LOGOUT</a>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link" href="faculty.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="faculty_calender.html">Leave Calendar View</a></li>
+        <li class="nav-item"><a class="nav-link active" href="faculty_analysis.html">Monthly Analysis</a></li>
+    </ul>
+
+    <div id="viewMonthlyDashboard">
+        <div class="dashboard-section">
+            <h4 class="section-title">Month-Wise Approved Statistics</h4>
+            <div id="monthlyAccordionContainer">Generating monthly summaries...</div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
+        let userData = JSON.parse(localStorage.getItem('facultyUser'));
+
+        function formatDateString(rawDate) {
+            if (!rawDate) return "";
+            let str = rawDate.toString().trim();
+            if (str.includes(',')) {
+                return str.split(',').map(datePart => {
+                    let cleanPart = datePart.trim().split('T')[0].split(' ')[0];
+                    const parts = cleanPart.split('-');
+                    if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
+                    return cleanPart;
+                }).join(', '); 
+            }
+            let dateStr = str.split('T')[0].split(' ')[0];
+            const parts = dateStr.split('-'); 
+            if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
+            return dateStr;
+        }
+
+        if (!userData) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('facName').innerText = userData.name;
+            document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
+            document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
+            if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Admin") {
+                document.getElementById('backToGatewayBtn').classList.remove('hidden');
+            }
+            generateMonthlyWiseAnalytics();
+        }
+
+        async function generateMonthlyWiseAnalytics() {
+            const container = document.getElementById('monthlyAccordionContainer');
+            container.innerHTML = "Loading analysis logs...";
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role, caller: 'FacultyDashboard' })
+                });
+                const resData = await response.json();
+                
+                // 🍏 SAFETY PATCH: Extract the leaves array safely out of the new composite data wrapper object shell
+                const list = resData.leaves ? resData.leaves : (Array.isArray(resData) ? resData : []);
+                const approvedLeaves = list.filter(req => req.status === 'Approved');
+
+                if (approvedLeaves.length === 0) {
+                    container.innerHTML = `<p class="text-muted text-center py-3">No approved leaves on record to analyze.</p>`;
+                    return;
+                }
+
+                let monthlyGroups = {};
+                approvedLeaves.forEach(req => {
+                    if (!req.leaveType.includes(':')) return;
+                    let breakdownParts = req.leaveType.split(':')[1].split(',');
+
+                    breakdownParts.forEach(part => {
+                        let trimmed = part.trim();
+                        let rawDateStr = trimmed.split('(')[0];
+                        let typePart = trimmed.includes('(') ? trimmed.split('(')[1].replace(')', '') : 'CL';
+
+                        let dateObj = new Date(rawDateStr.replace(/-/g, '/'));
+                        let groupKey = `${dateObj.toLocaleString('default', { month: 'long' })} ${dateObj.getFullYear()}`;
+
+                        if (!monthlyGroups[groupKey]) monthlyGroups[groupKey] = { cl: 0, sl: 0, lop: 0, details: [] };
+                        if (typePart === 'CL') monthlyGroups[groupKey].cl++;
+                        else if (typePart === 'SL') monthlyGroups[groupKey].sl++;
+                        else if (typePart === 'LOP') monthlyGroups[groupKey].lop++;
+
+                        monthlyGroups[groupKey].details.push({ date: rawDateStr, type: typePart });
+                    });
+                });
+
+                container.innerHTML = "";
+                let indexCounter = 0;
+                for (let groupKey in monthlyGroups) {
+                    let data = monthlyGroups[groupKey];
+                    let rowsHTML = "";
+                    data.details.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(item => {
+                        let badgeStyle = item.type === 'LOP' ? 'border: 1px solid #dc3545; color: #dc3545;' : 'border: 1px solid #ffcc00; color: #ffcc00;';
+                        rowsHTML += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded" style="background: #000; border: 1px solid #1a1a1a;">
+                                <span class="small fw-bold text-white-50">${formatDateString(item.date)}</span>
+                                <span class="small fw-bold px-2 py-1 rounded" style="${badgeStyle} font-size: 0.7rem;">${item.type === 'LOP' ? 'LOP (Unpaid)' : item.type + ' Token'}</span>
+                            </div>`;
+                    });
+
+                    let lopWarningBanner = data.lop > 0 ? `<div class="alert alert-danger py-2 px-3 small fw-bold mb-3 border-0 rounded-3" style="background: rgba(220,53,69,0.15); color: #ea868f;">⚠️ LOP Detected: ${data.lop} day(s) flagged for salary calculation.</div>` : "";
+
+                    container.innerHTML += `
+                        <div class="monthly-header" onclick="toggleMonthlyPanel(${indexCounter})">
+                            <span class="fw-bold text-warning">${groupKey}</span>
+                            <div>
+                                <span class="month-pill bg-secondary text-white">${data.cl + data.sl + data.lop} Days</span>
+                                ${data.cl > 0 ? `<span class="month-pill" style="background:#ffcc00; color:#000;">${data.cl} CL</span>` : ''}
+                                ${data.sl > 0 ? `<span class="month-pill bg-info text-dark">${data.sl} SL</span>` : ''}
+                                ${data.lop > 0 ? `<span class="month-pill bg-danger text-white">${data.lop} LOP</span>` : ''}
+                            </div>
+                        </div>
+                        <div id="monthlyPanel_${indexCounter}" class="monthly-panel hidden">
+                            ${lopWarningBanner}
+                            <div style="max-width: 450px;">${rowsHTML}</div>
+                        </div>`;
+                    indexCounter++;
+                }
+            } catch (err) { container.innerHTML = `<p class="text-danger text-center">Error reading logs.</p>`; }
+        }
+
+        function toggleMonthlyPanel(idx) { document.getElementById(`monthlyPanel_${idx}`).classList.toggle('hidden'); }
+        function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

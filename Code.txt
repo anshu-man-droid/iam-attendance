@@ -1,0 +1,416 @@
+const SHEETS_ID = '1Ua9tFlz2oT2NQLg7iC2PB9rSdf6Ori0Ol3G05ASTB10';
+const ALLOWED_IP_PREFIX = "122.177";
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.openById(SHEETS_ID);
+    const facultySheet = ss.getSheetByName('Faculty');
+    const attendanceSheet = ss.getSheetByName('Attendance');
+    const leaveSheet = ss.getSheetByName('Leaves');
+
+    // --- ROUTE: LOGIN (Handles split background syncs & CL/SL/LOP tracking) ---
+    if (data.action === 'login') {
+      const rows = facultySheet.getDataRange().getValues();
+      
+      const userIndex = rows.slice(1).findIndex(row => {
+        const matchId = row[0].toString().toUpperCase().trim() === data.facultyId.toString().toUpperCase().trim();
+        const matchPass = row[3].toString().trim() === data.password.toString().trim();
+        const isResync = data.password === "SESSION_RESYNC"; 
+        
+        return matchId && (matchPass || isResync);
+      });
+      
+      if (userIndex !== -1) {
+        const rowIndex = userIndex + 1; 
+        const user = rows[rowIndex];
+        
+        const registeredName = user[1].toString().trim();
+        const registeredDept = user[4].toString().trim();
+        const regDateString = user[5]; 
+        
+        let usedCL    = Number(user[7])  || 0;
+        let pendingCL = user[8]  !== "" && !isNaN(user[8])  ? Number(user[8])  : 1;
+        let totalCL   = user[9]  !== "" && !isNaN(user[9])  ? Number(user[9])  : 1;
+        
+        let usedSL    = Number(user[10]) || 0;
+        let pendingSL = user[11] !== "" && !isNaN(user[11]) ? Number(user[11]) : 1; 
+        let totalSL   = user[12] !== "" && !isNaN(user[12]) ? Number(user[12]) : 1; 
+        
+        let processedCycles = Number(user[13]) || 0; 
+        let currentLOP      = Number(user[14]) || 0; // 🚀 NEW: Reads Column O (Index 14)
+        
+        if (regDateString) {
+          const regDate = new Date(regDateString);
+          const today = new Date();
+          const timeDiff = today.getTime() - regDate.getTime();
+          const daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+          const expectedCyclesEarned = Math.floor(daysPassed / 30);
+          
+          // 🔄 UPGRADED AUTOMATED 30-DAY ROLLOVER ENGINE WITH PROPER PENDING BALANCING
+          if (expectedCyclesEarned > processedCycles) {
+            const cyclesPassed = expectedCyclesEarned - processedCycles;
+            
+            for (let c = 0; c < cyclesPassed; c++) {
+              let leftoverCL = totalCL - usedCL;
+              if (leftoverCL < 0) leftoverCL = 0;
+              
+              // 🍏 FIX: Accumulate standard allowance dynamically without crushing custom admin numbers
+              totalCL = 1 + leftoverCL;
+              usedCL = 0;
+              pendingCL = totalCL - usedCL; // Keeps pending perfectly calculated
+              
+              let leftoverSL = totalSL - usedSL;
+              if (leftoverSL < 0) leftoverSL = 0;
+              
+              totalSL = 1 + leftoverSL;
+              usedSL = 0;
+              pendingSL = totalSL - usedSL; // Keeps pending perfectly calculated
+
+              currentLOP = 0; 
+            }
+            
+            facultySheet.getRange(rowIndex + 1, 8).setValue(usedCL);       
+            facultySheet.getRange(rowIndex + 1, 9).setValue(pendingCL);    
+            facultySheet.getRange(rowIndex + 1, 10).setValue(totalCL);     
+            
+            facultySheet.getRange(rowIndex + 1, 11).setValue(usedSL);      
+            facultySheet.getRange(rowIndex + 1, 12).setValue(pendingSL);    
+            facultySheet.getRange(rowIndex + 1, 13).setValue(totalSL);     
+            
+            facultySheet.getRange(rowIndex + 1, 14).setValue(expectedCyclesEarned); 
+            facultySheet.getRange(rowIndex + 1, 15).setValue(currentLOP); // 🚀 NEW: Commits LOP reset to Col O
+          }
+        }
+        
+        let finalRole = "Faculty"; 
+        if (registeredName === "Ken Seng Thoumoung" && registeredDept === "Guitar") {
+          finalRole = "Admin";
+        }
+        
+        return response({ 
+          facultyId: user[0], 
+          name: registeredName, 
+          email: user[2], 
+          role: finalRole, 
+          dept: registeredDept,
+          regDate: user[5],
+          password: user[3].toString().trim(),
+          
+          totalCL: totalCL,
+          usedCL: usedCL,
+          pendingCL: pendingCL,
+          totalSL: totalSL,
+          usedSL: usedSL,
+          pendingSL: pendingSL,
+          currentLOP: currentLOP // 🚀 NEW: Sent directly to frontend dashboard state
+        });
+      } else {
+        return response("Fail");
+      }
+    }
+
+    // --- ROUTE: REGISTER ---
+    if (data.action === 'register') {
+      const rows = facultySheet.getDataRange().getValues();
+      const nextNumber = rows.length; 
+      const generatedId = "IAM" + nextNumber.toString().padStart(2, '0');
+      
+      const formattedToday = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
+      const forcedTextRegDate = "'" + formattedToday;
+
+      facultySheet.appendRow([
+        generatedId, 
+        data.name, 
+        data.email, 
+        data.password, 
+        data.role,          
+        forcedTextRegDate,  
+        data.dob,           
+        0, // Used CL
+        1, // Pending CL
+        1, // Total CL
+        0, // Used SL 
+        1, // Pending SL 
+        1, // Total SL 
+        0, // Tracked Cycles
+        0  // 🚀 Col O: Initial Current LOP starts at 0
+      ]);
+
+      return response({ success: true, facultyId: generatedId });
+    }
+
+    // --- ROUTE: LOG ATTENDANCE ---
+    if (data.action === 'logAttendance') {
+      if (!data.clientIP || !data.clientIP.startsWith(ALLOWED_IP_PREFIX)) { return response("ACCESS_DENIED"); }
+      attendanceSheet.appendRow([data.facultyId, data.name, data.role, data.type, new Date()]);
+      return response("SUCCESS");
+    }
+
+    // --- ROUTE: SUBMIT LEAVE REQUEST ---
+    if (data.action === 'requestLeave') {
+      const leaveRows = leaveSheet.getDataRange().getValues();
+      const requestId = "REQ" + leaveRows.length.toString().padStart(3, '0');
+      const forcedTextDate = "'" + data.dates; 
+
+      leaveSheet.appendRow([
+        requestId, 
+        data.facultyId, 
+        data.name, 
+        forcedTextDate, 
+        data.leaveType, 
+        "Pending", 
+        new Date(),
+        data.calculatedDays || 1 
+      ]);
+      return response("LEAVE_REQUESTED");
+    }
+
+    // --- ROUTE: FETCH LEAVE REQUESTS ---
+    if (data.action === 'fetchLeaves') {
+      const rows = leaveSheet.getDataRange().getValues();
+      const leaveData = rows.slice(1).map(row => {
+        return { 
+          requestId: row[0], 
+          facultyId: row[1], 
+          name: row[2], 
+          dates: row[3], 
+          leaveType: row[4], 
+          status: row[5], 
+          timestamp: row[6] 
+        };
+      });
+      
+      // Define the target faculty ID safely using String() to prevent empty cell crashes
+      let targetFacultyId = data.facultyId ? String(data.facultyId).toUpperCase().trim() : "";
+      
+      // Filter leave array safely checking if item and facultyId exist
+      let filteredLeaves = [];
+      if (data.role === 'Admin' && data.caller !== 'FacultyDashboard') {
+        filteredLeaves = leaveData; // Main Admin queue shows all requests
+      } else {
+        filteredLeaves = leaveData.filter(item => {
+          return item.facultyId && String(item.facultyId).toUpperCase().trim() === targetFacultyId;
+        });
+      }
+      
+      // Fetch historical balance logs safely matching this specific faculty member
+      let activeSnapshots = [];
+      if (targetFacultyId) {
+        var balanceHistorySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("BalanceHistory");
+        if (balanceHistorySheet) {
+          var historyRows = balanceHistorySheet.getDataRange().getValues();
+          for (var i = 1; i < historyRows.length; i++) {
+            // Safe array boundary check and defensive String translation to avoid blank row 500 crashes
+            if (historyRows[i] && historyRows[i][1] && String(historyRows[i][1]).toUpperCase().trim() === targetFacultyId) {
+              activeSnapshots.push({
+                timestamp: historyRows[i][0],
+                reference: historyRows[i][2] ? String(historyRows[i][2]).trim() : "",
+                clAvailable: (Number(historyRows[i][3]) || 0) - (Number(historyRows[i][4]) || 0), // Total CL - Used CL
+                slAvailable: (Number(historyRows[i][6]) || 0) - (Number(historyRows[i][7]) || 0), // Total SL - Used SL
+                lop: historyRows[i][9] || 0
+              });
+            }
+          }
+        }
+      }
+
+      // Return comprehensive object structure if target history is requested
+      if (targetFacultyId) {
+        return response({
+          leaves: filteredLeaves,
+          balanceHistory: activeSnapshots
+        });
+      }
+      
+      // Fallback response for universal non-filtered admin listings
+      return response(filteredLeaves);
+    }
+    
+    // --- ROUTE: FETCH ALL FACULTY METRICS (Admin Isolation View) ---
+    if (data.action === 'fetchFacultyPool') {
+      if (data.adminRole !== 'Admin') { return response("UNAUTHORIZED"); }
+      
+      const rows = facultySheet.getDataRange().getValues();
+      const facultyPool = [];
+      
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row[0] || row[0].toString().trim() === "") continue;
+        
+        const usedCL    = row[7]  !== "" && !isNaN(row[7])  ? Number(row[7])  : 0;
+        const pendingCL = row[8]  !== "" && !isNaN(row[8])  ? Number(row[8])  : 0;
+        const totalCL   = row[9]  !== "" && !isNaN(row[9])  ? Number(row[9])  : 0;
+        
+        const usedSL    = row[10] !== "" && !isNaN(row[10]) ? Number(row[10]) : 0;
+        const pendingSL = row[11] !== "" && !isNaN(row[11]) ? Number(row[11]) : 0;
+        const totalSL   = row[12] !== "" && !isNaN(row[12]) ? Number(row[12]) : 0;
+        const currentLOP= row[14] !== "" && !isNaN(row[14]) ? Number(row[14]) : 0; // 🚀 NEW: Package current LOP for admin
+        
+        facultyPool.push({
+          facultyId: row[0].toString().trim(),
+          name: row[1].toString().trim(),
+          role: row[4].toString().trim(), 
+          clUsed: usedCL,
+          clPending: pendingCL,
+          clTotal: totalCL,
+          slUsed: usedSL,
+          slPending: pendingSL,
+          slTotal: totalSL,
+          currentLOP: currentLOP // 🚀 NEW
+        });
+      }
+      return response(facultyPool);
+    }
+
+    // --- ROUTE: REVIEW LEAVE (Dynamic Spillover Processing Core Engine) ---
+    if (data.action === 'reviewLeave') {
+      if (data.adminRole !== 'Admin') { return response("UNAUTHORIZED"); }
+      const leaveRows = leaveSheet.getDataRange().getValues();
+      let matchIndex = -1;
+      
+      for (let i = 1; i < leaveRows.length; i++) {
+        if (leaveRows[i][0].toString().toUpperCase().trim() === data.requestId.toString().toUpperCase().trim()) { 
+          matchIndex = i; 
+          break; 
+        }
+      }
+      
+      if (matchIndex !== -1) {
+        if (leaveRows[matchIndex][5] !== "Pending") return response("ALREADY_PROCESSED");
+        
+        const targetFacultyId = leaveRows[matchIndex][1].toString().toUpperCase().trim();
+        const baseLeaveType   = leaveRows[matchIndex][4].toString().split(':')[0].split('(')[0].trim(); // Clean base string parameter
+        
+        // Commit decision status to Column F (Index 5)
+        leaveSheet.getRange(matchIndex + 1, 6).setValue(data.status); 
+        
+        if (data.status.toString().toUpperCase().trim() === "APPROVED") { 
+          const facultyRows = facultySheet.getDataRange().getValues();
+          const facultyHeaders = facultyRows[0]; // 🍏 Define headers from the first row
+          let facultyFound = false;
+          
+          for (let j = 1; j < facultyRows.length; j++) {
+            let currentSheetFacultyId = facultyRows[j][0].toString().toUpperCase().trim();
+            
+            if (currentSheetFacultyId === targetFacultyId) {
+              facultyFound = true;
+              
+              // 1. Read existing balance records from spreadsheet database row context coordinates
+              let currentUsedCL  = Number(facultyRows[j][7])  || 0;
+              let totalCL        = Number(facultyRows[j][9])  || 0;
+              let currentUsedSL  = Number(facultyRows[j][10]) || 0;
+              let totalSL        = Number(facultyRows[j][12]) || 0;
+              let currentLOP     = Number(facultyRows[j][14]) || 0; // Column O (Index 14)
+              
+              // 2. Apply explicit variation additions passed from the admin panel dropdown configurations
+              let newUsedCL = currentUsedCL + (Number(data.clUsedDelta) || 0);
+              let newPendingCL = totalCL - newUsedCL;
+              if (newPendingCL < 0) newPendingCL = 0;
+              
+              let newUsedSL = currentUsedSL + (Number(data.slUsedDelta) || 0);
+              let newPendingSL = totalSL - newUsedSL;
+              if (newPendingSL < 0) newPendingSL = 0;
+              
+              let newLOP = currentLOP + (Number(data.lopUsedDelta) || 0);
+              
+              // 3. Save calculated values back to Faculty sheet cell ranges
+              facultySheet.getRange(j + 1, 8).setValue(newUsedCL);       // Column H
+              facultySheet.getRange(j + 1, 9).setValue(newPendingCL);    // Column I
+              facultySheet.getRange(j + 1, 11).setValue(newUsedSL);      // Column K
+              facultySheet.getRange(j + 1, 12).setValue(newPendingSL);   // Column L
+              facultySheet.getRange(j + 1, 15).setValue(newLOP);         // Column O (Current LOP)
+              
+              // 4. Save the colon-separated breakdown text to Column E so the faculty dashboard can parse it cleanly
+              if (data.customBreakdownText) {
+                leaveSheet.getRange(matchIndex + 1, 5).setValue(`${baseLeaveType}: ${data.customBreakdownText}`);
+              }
+
+              // 🍏 5. Fetch the newly updated row data array to log the accurate snapshot
+              let updatedRowValues = facultySheet.getRange(j + 1, 1, 1, facultySheet.getLastColumn()).getValues()[0];
+              logBalanceSnapshot(facultySheet, targetFacultyId, data.requestId, updatedRowValues, facultyHeaders);
+              
+              break;
+            }
+          }
+          if (!facultyFound) return response("Error: Faculty ID not found.");
+        }
+        return response("STATUS_UPDATED");
+      }
+      return response("NOT_FOUND");
+    }
+
+    // --- ROUTE: UPDATE BALANCES INLINE (Admin Manual Overrides) ---
+    if (data.action === 'updateFacultyBalancesInline') {
+      if (data.adminRole !== 'Admin') { return response("UNAUTHORIZED"); }
+      
+      const targetFacultyId = data.facultyId.toString().toUpperCase().trim();
+      const facultyRows = facultySheet.getDataRange().getValues();
+      const facultyHeaders = facultyRows[0]; // 🍏 Define headers from the first row
+      let facultyFound = false;
+
+      for (let j = 1; j < facultyRows.length; j++) {
+        let currentSheetFacultyId = facultyRows[j][0].toString().toUpperCase().trim();
+
+        if (currentSheetFacultyId === targetFacultyId) {
+          facultyFound = true;
+
+          // 1. Commit raw inputs directly from the admin manual directory panel to sheet columns
+          facultySheet.getRange(j + 1, 8).setValue(Number(data.clUsed) || 0);       // Column H (Used CL)
+          facultySheet.getRange(j + 1, 9).setValue(Number(data.clPending) || 0);    // Column I (Pending CL)
+          facultySheet.getRange(j + 1, 11).setValue(Number(data.slUsed) || 0);      // Column K (Used SL)
+          facultySheet.getRange(j + 1, 12).setValue(Number(data.slPending) || 0);   // Column L (Pending SL)
+          facultySheet.getRange(j + 1, 15).setValue(Number(data.currentLOP) || 0);  // Column O (Current LOP)
+          
+          // Optional: If total configurations are editable from your directory row inputs
+          if (data.clTotal !== undefined) facultySheet.getRange(j + 1, 10).setValue(Number(data.clTotal) || 0); // Column J
+          if (data.slTotal !== undefined) facultySheet.getRange(j + 1, 13).setValue(Number(data.slTotal) || 0); // Column M
+
+          // 🍏 2. Fetch the newly saved row values array from the live cells
+          let updatedRowValues = facultySheet.getRange(j + 1, 1, 1, facultySheet.getLastColumn()).getValues()[0];
+          
+          // 🍏 3. Log the history archive snapshot labeled as a manual action entry
+          logBalanceSnapshot(facultySheet, targetFacultyId, "MANUAL_ADJUSTMENT", updatedRowValues, facultyHeaders);
+          
+          break;
+        }
+      }
+      
+      if (!facultyFound) return response("NOT_FOUND");
+      return response("INLINE_BALANCES_UPDATED");
+    }
+
+  } catch (err) { return response("Error: " + err.toString()); }
+}
+
+function response(content) {
+  const out = typeof content === 'object' ? JSON.stringify(content) : content;
+  return ContentService.createTextOutput(out).setMimeType(ContentService.MimeType.TEXT);
+}
+
+// 📑 BACKEND ENGINE: LOGS A SNAPSHOT OF FACULTY BALANCES TO THE HISTORY SHEET
+function logBalanceSnapshot(sheet, facultyId, referenceId, facRowValues, headers) {
+  var historySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("BalanceHistory");
+  if (!historySheet) return;
+  
+  // Create a map of column headers to their current row indices
+  var rowMap = {};
+  for (var i = 0; i < headers.length; i++) {
+    // Trim string characters to handle any stray spaces safely
+    rowMap[headers[i].toString().trim()] = facRowValues[i];
+  }
+  
+  // 🍏 FIX: Matched strings exactly to your literal Spreadsheet headers
+  historySheet.appendRow([
+    new Date(),
+    facultyId,
+    referenceId,
+    rowMap["Total CL"] || 0,
+    rowMap["Used CL"] || 0,
+    rowMap["Pending CL"] || 0,
+    rowMap["Total SL"] || 0,
+    rowMap["Used SL"] || 0,
+    rowMap["Pending SL"] || 0,
+    rowMap["Current LOP"] || 0
+  ]);
+} 

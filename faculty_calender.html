@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM - Leave Calendar View</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000000; font-family: 'Lexend', sans-serif; color: #ffffff; padding-bottom: 50px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 0; border-bottom: 1px solid #333; margin-bottom: 40px; }
+        .prof-pic { width: 60px; height: 60px; background: #ffcc00; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.5rem; margin-right: 15px; }
+        .faculty-info h2 { margin-bottom: 0; font-weight: 700; color: #ffcc00; }
+        .faculty-info p { color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 0; }
+        
+        .dashboard-section { background: #111111; border: 1px solid #222; border-radius: 24px; padding: 30px; margin-top: 30px; }
+        .section-title { color: #ffcc00; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .logout-btn { color: #ffcc00; font-weight: bold; text-decoration: none; }
+        .hidden { display: none !important; }
+
+        .nav-tabs { border-bottom: 2px solid #222; margin-bottom: 25px; }
+        .nav-link { color: #888; font-weight: bold; border: none !important; text-transform: uppercase; padding: 12px 25px; text-decoration: none; }
+        .nav-link:hover { color: #ffcc00; }
+        .nav-link.active { background: transparent !important; color: #ffcc00 !important; border-bottom: 3px solid #ffcc00 !important; }
+
+        .gui-calendar-weekdays-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; color: #888; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 15px; }
+        .gui-calendar-days-surface-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 20px; column-gap: 10px; justify-items: center; }
+        .gui-calendar-day-node { width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: bold; color: #444444; border-radius: 50%; position: relative; cursor: pointer; transition: 0.2s; background: transparent; }
+        .gui-calendar-day-node:hover { background: #222222; transform: scale(1.08); }
+        .gui-calendar-day-node.active-month-day { color: #888888; } 
+
+        .gui-calendar-day-node.status-bg-approved { background: rgba(25, 135, 84, 0.2) !important; color: #ffffff !important; border: 2px solid #198754; }
+        .gui-calendar-day-node.status-bg-pending { background: rgba(255, 193, 7, 0.15) !important; color: #ffffff !important; border: 2px solid #ffc107; }
+        .gui-calendar-day-node.status-bg-rejected { background: rgba(220, 53, 69, 0.2) !important; color: #ffffff !important; border: 2px solid #dc3545; }
+
+        .gui-calendar-badge-character { position: absolute; bottom: 2px; font-size: 0.65rem; font-weight: 900; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; }
+        .badge-char-approved { background: #198754; color: #fff; }
+        .badge-char-pending { background: #ffc107; color: #000; }
+        .badge-char-rejected { background: #dc3545; color: #fff; }
+    </style>
+</head>
+<body class="container">
+
+    <div class="header">
+        <div class="d-flex align-items-center">
+            <div class="prof-pic" id="initials">?</div>
+            <div class="faculty-info">
+                <h2 id="facName">Loading...</h2>
+                <p id="facRole">Faculty View</p>
+            </div>
+        </div>
+        <div>
+            <a href="bridge.html" id="backToGatewayBtn" class="logout-btn me-4 hidden">BACK TO GATEWAY</a>
+            <a href="#" class="logout-btn" onclick="logout()">LOGOUT</a>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link" href="faculty.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="faculty_calender.html">Leave Calendar View</a></li>
+        <li class="nav-item"><a class="nav-link" href="faculty_analysis.html">Monthly Analysis</a></li>
+    </ul>
+
+    <div id="viewCalendarDashboard">
+        <div class="dashboard-section text-center">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button class="btn btn-dark btn-sm border-secondary fw-bold text-warning" onclick="shiftCalendarMonth(-1)">◀ Prev</button>
+                <h3 id="calendarMonthHeaderTitle" class="text-warning fw-bold m-0">Month Year</h3>
+                <button class="btn btn-dark btn-sm border-secondary fw-bold text-warning" onclick="shiftCalendarMonth(1)">Next ▶</button>
+            </div>
+            
+            <div class="gui-calendar-weekdays-grid-header">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            </div>
+            
+            <div id="guiCalendarDaysContainerSurface" class="gui-calendar-days-surface-grid"></div>
+
+            <div id="calendarInspectionDrawerDrawer" class="hidden mt-4 text-start p-3 rounded-4" style="background: #0d0d0d; border: 1px solid #333; max-width: 450px; margin: 0 auto;">
+                <h5 id="drawerInspectionTargetDateText" class="text-warning fw-bold mb-2">Selected Date Details</h5>
+                <div id="drawerInspectionContentPayload" class="text-white small">No entry logs reported.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_B-F30oaY2TKb0HYWv7fCaMKAZ9Sek8sE6cKEEjN-IQ_-Ko7dNEVMom_r99z_R0f6/exec';
+        let calendarSelectedActiveDate = new Date(); 
+        let cachedLeavesArrayForGridMapping = [];    
+        let userData = JSON.parse(localStorage.getItem('facultyUser'));
+
+        function formatDateString(rawDate) {
+            if (!rawDate) return "";
+            let str = rawDate.toString().trim();
+            if (str.includes(',')) {
+                return str.split(',').map(datePart => {
+                    let cleanPart = datePart.trim().split('T')[0].split(' ')[0];
+                    const parts = cleanPart.split('-');
+                    if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
+                    return cleanPart;
+                }).join(', '); 
+            }
+            let dateStr = str.split('T')[0].split(' ')[0];
+            const parts = dateStr.split('-'); 
+            if (parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`; }
+            return dateStr;
+        }
+
+        if (!userData) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('facName').innerText = userData.name;
+            document.getElementById('initials').innerText = userData.name.charAt(0).toUpperCase();
+            document.getElementById('facRole').innerText = `${userData.dept} Instructor`;
+            if (userData.name.trim() === "Ken Seng Thoumoung" && userData.role === "Admin") {
+                document.getElementById('backToGatewayBtn').classList.remove('hidden');
+            }
+            syncAndGenerateVisualCalendarGrid();
+        }
+
+        let globalFacultyBalanceHistoryLog = []; // Declare global capture container array
+
+        async function syncAndGenerateVisualCalendarGrid() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'fetchLeaves', facultyId: userData.facultyId, role: userData.role, caller: 'FacultyDashboard' })
+                });
+                const resData = await response.json();
+                
+                // Extract structured composite keys safely
+                cachedLeavesArrayForGridMapping = resData.leaves ? resData.leaves : [];
+                globalFacultyBalanceHistoryLog = resData.balanceHistory ? resData.balanceHistory : [];
+                
+                generateNativeCalendarDOMSurfaces();
+            } catch (err) { console.error("Calendar fetch error:", err); }
+        }
+
+        function shiftCalendarMonth(directionAmount) {
+            calendarSelectedActiveDate.setMonth(calendarSelectedActiveDate.getMonth() + directionAmount);
+            generateNativeCalendarDOMSurfaces();
+        }
+
+        function generateNativeCalendarDOMSurfaces() {
+            const container = document.getElementById('guiCalendarDaysContainerSurface');
+            const headerTitle = document.getElementById('calendarMonthHeaderTitle');
+            container.innerHTML = "";
+
+            // 🍏 1. Add background click listener directly to the container once cleared
+            container.onclick = (event) => {
+                // If they click on the blank gaps between circles (the background itself)
+                if (event.target === event.currentTarget) {
+                    const drawer = document.getElementById('calendarInspectionDrawerDrawer');
+                    if (drawer) drawer.classList.add('hidden');
+                }
+            };
+
+            const targetYear = calendarSelectedActiveDate.getFullYear();
+            const targetMonth = calendarSelectedActiveDate.getMonth();
+            headerTitle.innerText = `${calendarSelectedActiveDate.toLocaleString('default', { month: 'long' })} ${targetYear}`;
+
+            const firstDayIndexOffset = new Date(targetYear, targetMonth, 1).getDay();
+            const totalDaysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndexOffset; i++) {
+                const spacer = document.createElement('div');
+                spacer.className = "gui-calendar-day-node";
+                container.appendChild(spacer);
+            }
+
+            for (let dayNumber = 1; dayNumber <= totalDaysInMonth; dayNumber++) {
+                const dayNodeElement = document.createElement('div');
+                dayNodeElement.className = "gui-calendar-day-node active-month-day";
+                dayNodeElement.innerText = dayNumber;
+
+                const currentIterationDateString = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+
+                const historicalRecordsFound = cachedLeavesArrayForGridMapping.filter(item => {
+                    const parsedNormalizedDatesArray = item.dates.split(',').map(d => {
+                        let cleanStr = d.trim().split('T')[0].split(' ')[0];
+                        const p = cleanStr.split('-');
+                        if (p.length === 3) {
+                            if (p[0].length === 4) return `${p[0]}-${p[1]}-${p[2]}`;
+                            return `20${p[2]}-${p[1]}-${p[0]}`;
+                        }
+                        return "";
+                    }).filter(d => d !== "");
+                    return parsedNormalizedDatesArray.includes(currentIterationDateString);
+                });
+
+                if (historicalRecordsFound.length > 0) {
+                    let topPriorityRecord = historicalRecordsFound.find(r => r.status === 'Approved') || historicalRecordsFound.find(r => r.status === 'Pending') || historicalRecordsFound[0];
+                    const statusStateKey = topPriorityRecord.status;
+                    const badgeCharacterSpan = document.createElement('span');
+                    badgeCharacterSpan.className = "gui-calendar-badge-character";
+
+                    if (statusStateKey === 'Approved') {
+                        dayNodeElement.classList.add('status-bg-approved'); badgeCharacterSpan.innerText = "A"; badgeCharacterSpan.classList.add('badge-char-approved');
+                    } else if (statusStateKey === 'Pending') {
+                        dayNodeElement.classList.add('status-bg-pending'); badgeCharacterSpan.innerText = "P"; badgeCharacterSpan.classList.add('badge-char-pending');
+                    } else if (statusStateKey === 'Rejected') {
+                        dayNodeElement.classList.add('status-bg-rejected'); badgeCharacterSpan.innerText = "R"; badgeCharacterSpan.classList.add('badge-char-rejected');
+                    }
+                    dayNodeElement.appendChild(badgeCharacterSpan);
+
+                    // 🎛️ Click interaction for an ACTIVE date record
+                    dayNodeElement.onclick = (event) => {
+                        event.stopPropagation(); // 🛑 Stops background click from firing
+                        executeInspectionDrawerActivation(currentIterationDateString, historicalRecordsFound, globalFacultyBalanceHistoryLog);
+                    };
+                } else {
+                    // 🍏 Click interaction for an INACTIVE empty circle date node
+                    dayNodeElement.onclick = (event) => {
+                        event.stopPropagation(); // 🛑 Stops background click from firing
+                        
+                        const drawer = document.getElementById('calendarInspectionDrawerDrawer');
+                        const dateTitle = document.getElementById('drawerInspectionTargetDateText');
+                        const contentPane = document.getElementById('drawerInspectionContentPayload');
+                        
+                        const parts = currentIterationDateString.split('-');
+                        dateTitle.innerText = `Details for: ${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
+                        drawer.classList.remove('hidden');
+                        
+                        contentPane.innerHTML = `
+                            <div class="p-2 text-muted italic" style="border-left: 2px solid #444;">
+                                No activity reported. No leaves requested on this date.
+                            </div>
+                        `;
+                    };
+                }
+                container.appendChild(dayNodeElement);
+            }
+        }
+
+        function executeInspectionDrawerActivation(dateIsoTextString, transactionsArray, balanceHistoryArray) {
+            const drawer = document.getElementById('calendarInspectionDrawerDrawer');
+            const dateTitle = document.getElementById('drawerInspectionTargetDateText');
+            const contentPane = document.getElementById('drawerInspectionContentPayload');
+            const parts = dateIsoTextString.split('-');
+            dateTitle.innerText = `Details for: ${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
+            drawer.classList.remove('hidden');
+
+            if (transactionsArray.length === 0) {
+                contentPane.innerHTML = `<div class="p-2 text-muted italic" style="border-left: 2px solid #444;">No records found.</div>`;
+                return;
+            }
+            let compiledHtmlContent = "";
+            transactionsArray.forEach(req => {
+                let statusColor = req.status === 'Approved' ? "#198754" : (req.status === 'Rejected' ? "#dc3545" : "#ffc107");
+                let cleanTypeDisplay = req.leaveType.split(':')[0];
+                let simultaneousDatesHTML = "";
+
+                // 🔍 Fetch matching transaction row balance states
+                let snapshotMatch = (balanceHistoryArray || []).find(b => b.reference.toString().trim() === req.requestId.toString().trim());
+                let balanceHistoryHTML = "";
+                
+                if (snapshotMatch) {
+                    balanceHistoryHTML = `
+                        <div class="mt-3 p-2 rounded" style="background: #000; border: 1px solid #222; font-size: 0.75rem;">
+                            <div class="text-warning fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;">📊 Balance Snapshot at processing:</div>
+                            <div class="d-flex justify-content-between text-white-50">
+                                <span>Available CL: <b class="text-white">${snapshotMatch.clAvailable}</b></span>
+                                <span>Available SL: <b class="text-white">${snapshotMatch.slAvailable}</b></span>
+                                <span>Total Month LOP: <b class="text-danger">${snapshotMatch.lop}</b></span>
+                            </div>
+                        </div>`;
+                }
+
+                if (req.status === 'Approved' && req.leaveType.includes(':')) {
+                    let breakdownParts = req.leaveType.split(':')[1].split(',');
+                    breakdownParts.forEach(part => {
+                        let trimmed = part.trim();
+                        let datePart = trimmed.split('(')[0];
+                        let typePart = trimmed.includes('(') ? trimmed.split('(')[1].replace(')', '') : 'CL';
+                        let badgeStyle = typePart === 'LOP' ? 'color: #dc3545; border: 1px solid #dc3545;' : 'color: #ffcc00; border: 1px solid #ffcc00;';
+
+                        simultaneousDatesHTML += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background: #000; border: 1px solid #222;">
+                                <span class="fw-bold text-white-50" style="font-size: 0.8rem;">${formatDateString(datePart)}</span>
+                                <span class="fw-bold px-2 py-0.5 rounded" style="${badgeStyle} font-size: 0.65rem;">${typePart === 'LOP' ? 'LOP (Unpaid)' : typePart + ' Token'}</span>
+                            </div>`;
+                    });
+                } else {
+                    let datesArray = req.dates.split(',');
+                    let textLabel = req.status === 'Rejected' ? 'Rejected' : 'Pending Review';
+                    let labelBorder = req.status === 'Rejected' ? '1px solid #dc3545' : '1px solid #aaa';
+                    let labelColor = req.status === 'Rejected' ? '#dc3545' : '#aaa';
+
+                    datesArray.forEach(dStr => {
+                        simultaneousDatesHTML += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background: #000; border: 1px solid #222;">
+                                <span class="fw-bold text-white-50" style="font-size: 0.8rem;">${formatDateString(dStr.trim())}</span>
+                                <span class="fw-bold px-2 py-0.5 rounded" style="color: ${labelColor}; border: ${labelBorder}; font-size: 0.65rem;">${textLabel}</span>
+                            </div>`;
+                    });
+                }
+
+                compiledHtmlContent += `
+                    <div class="mb-2 p-3 rounded" style="background: #141414; border-left: 3px solid ${statusColor};">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-warning">${cleanTypeDisplay}</span>
+                            <span class="fw-bold small text-uppercase" style="color: ${statusColor}; font-size: 0.75rem;">${req.status}</span>
+                        </div>
+                        <div style="border-top: 1px solid #222; padding-top: 8px;">
+                            <span class="text-secondary fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Simultaneous Dates Status Breakdown:</span>
+                            <div class="mt-2">${simultaneousDatesHTML}</div>
+                        </div>
+                        ${balanceHistoryHTML}
+                    </div>`;
+            });
+            contentPane.innerHTML = compiledHtmlContent;
+        }
+
+        function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
