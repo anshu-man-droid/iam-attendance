@@ -215,6 +215,32 @@
                 btn.innerText = "Register Faculty";
             }
         }
+
+        // 🍏 WI-FI & KEYBOARD SAFETY: CAPTURE ENTER KEY FOR SIGN-IN AND SIGN-UP
+        document.addEventListener("DOMContentLoaded", () => {
+            const loginCard = document.getElementById("loginSection");
+            const regCard = document.getElementById("regSection");
+            
+            // Trigger login when Enter is pressed inside the Login Form
+            if (loginCard) {
+                loginCard.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Prevents browser form-reset bugs
+                        handleLogin();          // Executes your login routine
+                    }
+                });
+            }
+
+            // Trigger registration when Enter is pressed inside the Registration Form
+            if (regCard) {
+                regCard.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Prevents unexpected page reloads
+                        handleRegister();       // Executes your registration routine
+                    }
+                });
+            }
+        });
         
     </script>
 </body>

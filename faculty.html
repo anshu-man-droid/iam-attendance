@@ -508,6 +508,22 @@
             } catch (e) { alert("Connection error."); }
         }
 
+        // 🍏 KEYBOARD SHORTCUT: CAPTURE ENTER KEY EXCLUSIVELY FOR LEAVE SUBMISSIONS
+        document.addEventListener("DOMContentLoaded", () => {
+            // Selects the main dashboard leave request container layout block
+            const leaveSection = document.querySelector(".dashboard-section");
+            
+            if (leaveSection) {
+                leaveSection.addEventListener("keydown", (event) => {
+                    // Ensure the user is pressing Enter specifically within this section
+                    if (event.key === "Enter") {
+                        event.preventDefault();      // Stops standard browser bubbling
+                        submitLeaveRequest();        // Executes your secure submission routine
+                    }
+                });
+            }
+        });
+
         function logout() { localStorage.removeItem('facultyUser'); window.location.href = 'index.html'; }
     </script>
 </body>
