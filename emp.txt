@@ -160,7 +160,7 @@ function doPost(e) {
 
       // 📨 EMAIL OUTBOUND: Find the Admin's email dynamically from the Roster sheet
       const facultyRows = facultySheet.getDataRange().getValues();
-      let adminEmail = "khetavathsaitanishka24@gmail.com"; // Verified master admin fallback handle
+      let adminEmail = "pcrao.gutti@gmail.com"; // Verified master admin fallback handle
       let facultyEmail = "";
 
       for (let j = 1; j < facultyRows.length; j++) {
@@ -437,8 +437,4 @@ function logBalanceSnapshot(sheet, facultyId, referenceId, facRowValues, headers
     rowMap["Pending SL"] || 0,
     rowMap["Current LOP"] || 0
   ]);
-}
-
-function triggerAuthPopup() {
-  MailApp.sendEmail("khetavathsaitanishka24@gmail.com", "Test Auth", "Checking permissions.");
 }
