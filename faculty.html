@@ -499,13 +499,56 @@
         }
 
         async function logTime(type) {
+            // 1. Identify which card was clicked based on the type ('Logged In' or 'Logged Out')
+            // We target the inner h3 text container to toggle a loading state
+            const cards = document.querySelectorAll('.menu-card');
+            let targetCard = null;
+            
+            cards.forEach(card => {
+                if (card.innerText.includes(type === 'Logged In' ? 'In' : 'Out')) {
+                    targetCard = card;
+                }
+            });
+
+            const originalHTML = targetCard ? targetCard.innerHTML : "";
+
+            // 2. IMMEDIATELY lock the interaction state to prevent spam clicks
+            if (targetCard) {
+                targetCard.style.pointerEvents = "none"; // Disables clicks on the div wrapper
+                targetCard.style.opacity = "0.6";
+                targetCard.innerHTML = `<h3>Processing...</h3>`;
+            }
+
             try {
+                // Fetch the user's IP address
                 const ipResponse = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipResponse.json();
-                const payload = { action: 'logAttendance', facultyId: userData.facultyId, name: userData.name, role: userData.dept, type: type, clientIP: ipData.ip };
+                
+                const payload = { 
+                    action: 'logAttendance', 
+                    facultyId: userData.facultyId, 
+                    name: userData.name, 
+                    role: userData.dept, 
+                    type: type, 
+                    clientIP: ipData.ip 
+                };
+                
+                // Fire request to your Google Apps Script backend
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert(await response.text() === "SUCCESS" ? `✅ Recorded: ${type}` : "❌ Access Denied.");
-            } catch (e) { alert("Connection error."); }
+                const result = await response.text();
+                
+                alert(result === "SUCCESS" ? `✅ Recorded: ${type}` : "❌ Access Denied.");
+            } catch (e) { 
+                console.error("Attendance log sync failure:", e);
+                alert("Connection error. Attendance could not be logged."); 
+            } finally {
+                // 3. RESET ENGINE: Safely unlock the UI elements once network operations terminate
+                if (targetCard) {
+                    targetCard.style.pointerEvents = "auto";
+                    targetCard.style.opacity = "1";
+                    targetCard.innerHTML = originalHTML;
+                }
+            }
         }
 
         // 🍏 KEYBOARD SHORTCUT: CAPTURE ENTER KEY EXCLUSIVELY FOR LEAVE SUBMISSIONS
